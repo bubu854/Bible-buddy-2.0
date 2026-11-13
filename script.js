@@ -92,6 +92,43 @@ $("#quizNext").onclick=()=>{if(!answered)return;if(qi===quiz.length-1){$("#quizQ
 const planContent={hope:["Psalm 46:1","Romans 15:13","Isaiah 40:31","Jeremiah 29:11","Psalm 23:1","John 14:27","Romans 8:38–39"],jesus:["Luke 1","Luke 2","Matthew 3","Matthew 4","Mark 1","John 1","Matthew 5"],proverbs:Array.from({length:30},(_,i)=>"Proverbs "+(i+1))};
 $$("[data-plan]").forEach(b=>b.onclick=()=>{const p=planContent[b.dataset.plan],el=$("#planDetail");el.classList.remove("hidden");el.innerHTML="<h3>"+b.parentElement.querySelector("h3").textContent+"</h3><p class='muted'>Suggested daily passages:</p><ol>"+p.map(x=>"<li>"+x+"</li>").join("")+"</ol><p class='small-note'>Mark each passage as read in your Bible app or printed Bible.</p>";el.scrollIntoView({behavior:"smooth",block:"nearest"})});
 let recorder=null,chunks=[],startedAt=0,ticker=null;
+let speechRecognition=null,liveTranscribing=false;
+function speechRecognitionConstructor(){return window.SpeechRecognition||window.webkitSpeechRecognition||null}
+function setTranscriptionStatus(message){const el=$("#liveTranscriptStatus");if(el)el.textContent=message}
+function stopLiveTranscription(){
+ liveTranscribing=false;
+ try{speechRecognition?.stop()}catch(e){}
+ $("#liveTranscribeStart")?.removeAttribute("disabled");
+ const stop=$("#liveTranscribeStop");if(stop)stop.disabled=true;
+}
+$("#liveTranscribeStart")?.addEventListener("click",()=>{
+ const SpeechRecognition=speechRecognitionConstructor();
+ if(!SpeechRecognition){setTranscriptionStatus("Live transcription is not supported in this browser. Tap the transcript box and use the iPhone keyboard microphone for dictation.");toast("Use the iPhone keyboard microphone");return}
+ if(liveTranscribing)return;
+ speechRecognition=new SpeechRecognition();
+ speechRecognition.continuous=true;speechRecognition.interimResults=true;
+ speechRecognition.lang=$("#languageSelect")?.value==="English"?"en-US":"fo-FO";
+ const box=$("#sermonTranscript");
+ speechRecognition.onresult=event=>{
+  let finalText="",interimText="";
+  for(let i=event.resultIndex;i<event.results.length;i++){
+   const phrase=event.results[i][0].transcript;
+   if(event.results[i].isFinal)finalText+=phrase+" ";else interimText+=phrase;
+  }
+  if(finalText)box.value=(box.value.trim()?box.value.trim()+" ":"")+finalText.trim();
+  setTranscriptionStatus(interimText?"Hearing: "+interimText:"Transcript updated. Keep speaking…");
+ };
+ speechRecognition.onerror=event=>{
+  if(event.error==="not-allowed"||event.error==="service-not-allowed"){stopLiveTranscription();setTranscriptionStatus("Microphone or speech recognition permission was denied. Check Safari microphone permissions.");}
+  else if(event.error==="language-not-supported"){stopLiveTranscription();setTranscriptionStatus("This device does not support speech recognition in this language. Try English or use iPhone keyboard dictation.");}
+  else if(event.error!=="no-speech"){setTranscriptionStatus("Speech recognition stopped: "+event.error+". You can try again.");}
+ };
+ speechRecognition.onend=()=>{if(liveTranscribing){try{speechRecognition.start()}catch(e){stopLiveTranscription();setTranscriptionStatus("Live transcription stopped. Tap Start live transcription to try again.");}}};
+ try{speechRecognition.start();liveTranscribing=true;$("#liveTranscribeStart").disabled=true;$("#liveTranscribeStop").disabled=false;setTranscriptionStatus("Listening… speak clearly. Your words will appear in the transcript box.");}
+ catch(e){stopLiveTranscription();setTranscriptionStatus("Could not start speech recognition. Try again or use iPhone keyboard dictation.");}
+});
+$("#liveTranscribeStop")?.addEventListener("click",()=>{stopLiveTranscription();setTranscriptionStatus("Live transcription stopped. Your text is ready for Buddy.");});
+
 $("#recordStart").onclick=async()=>{if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){toast("Recording is not supported in this browser");return}try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});recorder=new MediaRecorder(stream);chunks=[];recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};recorder.onstop=()=>{const blob=new Blob(chunks,{type:recorder.mimeType||"audio/webm"});const url=URL.createObjectURL(blob);const name=($("#languageSelect")?.value!=="English"?"Prædikuupptøka · ":"Sermon recording · ")+new Date().toLocaleString();const row=document.createElement("div");row.className="saved-item";const title=document.createElement("strong");title.textContent=name;const audio=document.createElement("audio");audio.controls=true;audio.src=url;row.append(title,audio);$("#recordingsList").prepend(row);stream.getTracks().forEach(t=>t.stop());$("#recordStatus").textContent="Recording saved for this session"};recorder.start();startedAt=Date.now();$("#recordStatus").textContent="Recording…";$("#recordOrb").classList.add("recording");$("#recordStart").disabled=true;$("#recordStop").disabled=false;ticker=setInterval(()=>{const n=Math.floor((Date.now()-startedAt)/1000);$("#recordTimer").textContent=String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0")},500)}catch(e){toast("Microphone permission was not granted")}};
 $("#recordStop").onclick=()=>{if(recorder?.state==="recording"){recorder.stop();clearInterval(ticker);$("#recordOrb").classList.remove("recording");$("#recordStart").disabled=false;$("#recordStop").disabled=true;$("#recordStatus").textContent="Finishing recording…"}};
 
