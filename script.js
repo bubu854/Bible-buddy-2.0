@@ -34,3 +34,73 @@ if(!store.get("dark",true))document.body.classList.add("light-mode");
 $("#exportData").onclick=()=>{const data={journal:store.get("journal"),prayers:store.get("prayers"),verses:store.get("verses")};const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="bible-buddy-notes.json";a.click();URL.revokeObjectURL(url);toast("Your notes export is ready")};
 if("serviceWorker"in navigator&&location.protocol==="https:")window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(console.error));
 page("home");
+
+/* Bible Buddy language + Bible reader update */
+(function(){
+ const faroese={
+ "GROW IN THE WORD":"VAKS Í GUDS ORÐI","YOUR DAILY TIME WITH GOD":"TÍN DAGLIGA LØTA VIÐ GUDI",
+ "Welcome back,":"Vælkomin aftur,","friend.":"vinur.","A little time in the Word can change your whole day.":"Ein løta í Guds orði kann broyta allan tín dag.",
+ "VERSE OF THE DAY":"DAGSINS BÍBLJUORÐ","TODAY":"Í DAG","Copy verse":"Avrita vers","Save verse":"Goym vers",
+ "YOUR STUDY SPACE":"TÍTT BÍBLIULEGURØKI","What would you like to do?":"Hvat hevur tú hug at gera?",
+ "Read the Bible":"Les Bíbliuna","Choose books and chapters":"Vel bøkur og kapitlar","Ask Buddy":"Spyr Buddy","Explore Bible questions":"Kanna spurningar um Bíbliuna",
+ "Sermon recorder":"Upptakari til prædikur","Record and keep messages":"Tak upp og goym boðskapir","My journal":"Mín dagbók","Save what you learn":"Goym tað, tú lærir",
+ "Prayer list":"Bønarl listi","Keep your prayers close":"Goym tínar bønir","Reading plans":"Lesiætlanir","Build a daily habit":"Skapa ein dagligan vana",
+ "Bible quiz":"Bíbliuquiz","Test what you know":"Royn tína vitan","Bible places":"Bíbilsk støð","Explore Bible locations":"Kanna støð í Bíbliuni",
+ "SCRIPTURE LIBRARY":"BÍBLIUSAVN","Read the ":"Les ","Word.":"Orðið.","Choose a book and chapter to begin.":"Vel eina bók og ein kapittul at byrja við.",
+ "BOOK OF THE BIBLE":"BÓK Í BÍBLIUNI","CHAPTER":"KAPITTUL","Choose a chapter":"Vel ein kapittul",
+ "Saved verses":"Goymd vers","YOUR BIBLE STUDY COMPANION":"TÍN BÍBLIULEGUFELAGI","Talk with ":"Tosa við ","Buddy.":"Buddy.",
+ "Ask questions, explore meaning and grow in faith.":"Set spurningar, kanna merkingina og vaksa í trúnni.",
+ "KEEP THE MESSAGE":"VARÐVEIT BOÐSKAPIN","Sermon ":"Prædiku","recorder.":"upptakari.","Record a sermon, speech or Bible study for later.":"Tak upp eina prædiku, røðu ella bíbliulestur.",
+ "Ready to record":"Til reiðar at taka upp","Start recording":"Byrja upptøku","Stop":"Steðga","My recordings":"Mínar upptøkur",
+ "REFLECT AND GROW":"HUGLEIÐ OG VAKS","My ":"Mín ","journal.":"dagbók.","Write down what God is teaching you.":"Skriva niður, hvat Gud lærir teg.",
+ "TITLE":"HEITI","YOUR NOTES":"TÍNI NOTAT","Save journal entry":"Goym dagbókarnotat","Past entries":"Fyrru notat",
+ "LET YOUR HEART SPEAK":"LAT HJARTAÐ TALA","Prayer ":"Bønar","list.":"listi.","Keep track of what and who you are praying for.":"Hav yvirlit yvir, hvat og hvørjum tú biður fyri.",
+ "Add a prayer request…":"Legg eina bønarumbøn afturat…","Add":"Legg afturat","My prayers":"Mínar bønir",
+ "A LITTLE EVERY DAY":"LÍTIÐ HVØNN DAG","Reading ":"Lesi","plans.":"ætlanir.","Choose a path and spend time in Scripture.":"Vel eina leið og brúka tíð í Skriftini.",
+ "LEARN AS YOU GO":"LÆR Á LEIÐINI","A few questions to test your Bible knowledge.":"Nakrir spurningar at royna tína bíbliuvitan.",
+ "EXPLORE THE BIBLE WORLD":"KANN BÍBLIULANDIÐ","places.":"støð.","Discover places connected to the stories of Scripture.":"Uppdaga støð, sum hoyra til frásagnirnar í Skriftini.",
+ "MAKE IT YOURS":"GER TAÐ TIL TÍTT","App ":"App","settings.":"stillingar.","APP LANGUAGE":"APP-MÁL","Dark appearance":"Døkk útsjónd",
+ "Black, navy blue and gold theme":"Svart, myrkablátt og gull","Your saved data":"Tíni goymdu dáta","Export my notes":"Útflyta míni notat",
+ "Home":"Heim","Bible":"Bíblia","Buddy":"Buddy","Record":"Upptøka","Settings":"Stillingar",
+ "No saved verses yet.":"Eingi vers eru goymd enn.","No journal entries yet.":"Eingi dagbókarnotat enn.",
+ "No prayer requests yet.":"Eingir bønarumbønir enn.","Open the official Faroese Bible ↗":"Lat upp Føroysku Bíbliuna ↗"
+ };
+ function translate(){
+   if(!document.querySelector("#languageSelect"))return;
+   const isFo=localStorage.getItem("bb_language")==="Faroese (Føroyskt)";
+   document.documentElement.lang=isFo?"fo":"en";
+   if(!isFo)return;
+   const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+   const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+   nodes.forEach(n=>{const key=n.nodeValue.trim();if(faroese[key])n.nodeValue=n.nodeValue.replace(key,faroese[key])});
+   const book=document.querySelector("#bookSelect");if(book)book.previousElementSibling && (book.previousElementSibling.textContent="BÓK Í BÍBLIUNI");
+   const chapter=document.querySelector("#chapterSelect");if(chapter&&chapter.previousElementSibling)chapter.previousElementSibling.textContent="KAPITTUL";
+   const lang=document.querySelector("#languageSelect");if(lang)lang.setAttribute("aria-label","App-mál");
+   const dark=document.querySelector("#darkToggle");if(dark&&dark.closest(".setting-row")){const small=dark.closest(".setting-row").querySelector("small");if(small)small.textContent="Svart, myrkablátt og gull"}
+ }
+ const language=document.querySelector("#languageSelect");
+ if(language){
+   const saved=localStorage.getItem("bb_language")||"English";
+   language.value=saved;
+   language.addEventListener("change",()=>{localStorage.setItem("bb_language",language.value);location.reload()});
+   translate();
+ }
+ const book=document.querySelector("#bookSelect"),chapter=document.querySelector("#chapterSelect"),area=document.querySelector("#readingArea");
+ async function loadBibleChapter(){
+   if(!book||!chapter||!area)return;
+   const b=book.value.toLowerCase().replace(/ /g,"+"),c=chapter.value;
+   area.innerHTML="<p>Loading chapter…</p>";
+   try{
+     const response=await fetch("https://bible-api.com/"+encodeURIComponent(b+" "+c)+"?translation=web");
+     if(!response.ok)throw new Error("Bible source unavailable");
+     const data=await response.json();
+     const verses=Array.isArray(data.verses)?data.verses:[];
+     if(!verses.length)throw new Error("No verses returned");
+     area.innerHTML="<h2>"+data.reference+"</h2>"+verses.map(v=>"<p class='bible-verse' data-verse='"+v.verse+"'><sup>"+v.verse+"</sup> "+String(v.text).replace(/[&<>]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[ch]))+"</p>").join("")+"<button type='button' class='secondary-btn' id='copyChapter'>Copy chapter</button>";
+     area.querySelectorAll(".bible-verse").forEach(p=>p.addEventListener("click",()=>p.classList.toggle("verse-highlight")));
+     const copy=document.querySelector("#copyChapter");if(copy)copy.onclick=()=>navigator.clipboard?.writeText(data.reference+"\n"+verses.map(v=>v.verse+". "+v.text).join("\n")).then(()=>alert("Chapter copied"));
+     if(localStorage.getItem("bb_language")==="Faroese (Føroyskt)")area.insertAdjacentHTML("beforeend","<p class='small-note'>Fyri føroyskan bíbliutekst, brúka leinkjuna til Føroysku Bíbliuna omanfyri.</p>");
+   }catch(err){area.innerHTML="<h2>"+book.value+" "+c+"</h2><p>Could not load this chapter right now. Please try again, or open the official Faroese Bible above.</p>";}
+ }
+ if(book&&chapter){book.addEventListener("change",()=>setTimeout(loadBibleChapter,0));chapter.addEventListener("change",loadBibleChapter);const old=area.innerHTML;const initial=()=>{if(!area.textContent.includes("Chapter selected"))loadBibleChapter();};setTimeout(initial,0);}
+})();
