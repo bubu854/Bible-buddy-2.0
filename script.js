@@ -355,7 +355,7 @@ page("home");
  // Audio Bible: uses the visible chapter text and device speech voices.
  let bibleUtterance=null;
  $("#audioBiblePlay")?.addEventListener("click",()=>{
-  const verses=[...$("#readingArea").querySelectorAll(".bible-verse")].map(v=>v.textContent.trim());
+  const verses=[...$("#readingArea").querySelectorAll(".bible-verse")].map(v=>{const copy=v.cloneNode(true);copy.querySelector("sup")?.remove();return copy.textContent.trim()});
   if(!verses.length){toast(say("Open an English Bible chapter first.","Lat fyrst ein enskan bíbliukapittul upp."));return}
   if(!("speechSynthesis"in window)){toast(say("Audio reading is not supported here.","Ljóðlesnaður er ikki tøkur her."));return}
   speechSynthesis.cancel();bibleUtterance=new SpeechSynthesisUtterance(verses.join(". "));
