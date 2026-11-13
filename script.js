@@ -39,7 +39,7 @@ $("#buddyVoiceStop")?.addEventListener("click",()=>{if("speechSynthesis"in windo
 function sendBuddy(t){
  if(!t.trim())return;
  const box=$("#chatMessages"),fo=$("#languageSelect")?.value!=="English";
- box.insertAdjacentHTML("beforeend",'<div class="chat-bubble user-message">'+esc(t)+'</div>');buddyLastSpeech=answer;speakBuddy(answer);
+ box.insertAdjacentHTML("beforeend",'<div class="chat-bubble user-message">'+esc(t)+'</div>');
  const en={
  "Explain John 3:16":"John 3:16 teaches that God's love is for the whole world. He gave his Son, Jesus, so everyone who trusts in him can receive eternal life. The verse invites us to trust Jesus. Read John 3:14–21 for the full context.",
  "Who was Moses?":"Moses was chosen by God to lead the Israelites out of slavery in Egypt. God spoke to Moses, gave him the Law, and guided the people toward the Promised Land. Read Exodus 1–20 to explore his story.",
@@ -54,7 +54,7 @@ function sendBuddy(t){
  const fallbackFO="Eg kann hjálpa tær at granska henda tekstin. Les versini rundanum, legg til merkis, hvat tey vísa um Gud og menniskju, og hugsa um, hvussu tú kanst liva eftir boðskapinum. Livandi AI er ikki sett upp enn, so eg kann ikki gera eitt nýtt svar til allar spurningar.";
  const answer=fo?(foAnswers[t]||fallbackFO):(en[t]||fallbackEN);
  box.insertAdjacentHTML("beforeend",'<div class="chat-bubble buddy-message">'+esc(answer)+'</div>');
- $("#chatInput").value="";box.scrollTop=box.scrollHeight;
+ buddyLastSpeech=answer;speakBuddy(answer); $("#chatInput").value="";box.scrollTop=box.scrollHeight;
 }
 $("#chatForm").addEventListener("submit",e=>{e.preventDefault();sendBuddy($("#chatInput").value)});$$(".prompt-chip").forEach(b=>b.onclick=()=>sendBuddy(b.textContent));
 const quiz=[["Who built the ark?",["Noah","Moses","David"],0],["Who defeated Goliath?",["Saul","David","Solomon"],1],["Where was Jesus born?",["Nazareth","Jerusalem","Bethlehem"],2],["Who was swallowed by a great fish?",["Jonah","Peter","Paul"],0],["What is the first book of the Bible?",["Exodus","Genesis","Psalms"],1]];let qi=0,answered=false,score=0;
