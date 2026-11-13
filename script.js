@@ -56,33 +56,36 @@ if("speechSynthesis"in window){loadBuddyVoices();window.speechSynthesis.onvoices
 applyBuddyAvatar();
 $("#buddyVoiceToggle")?.addEventListener("click",()=>speakBuddy(buddyLastSpeech||$("#chatMessages .buddy-message:last-child")?.textContent||"Hi, I am Buddy!"));
 $("#buddyVoiceStop")?.addEventListener("click",()=>{if("speechSynthesis"in window)window.speechSynthesis.cancel();$("#buddyCharacter")?.classList.remove("speaking");const status=$("#buddyVoiceStatus");if(status)status.textContent=$("#languageSelect")?.value!=="English"?"Røddin er steðgað.":"Voice stopped."});
-let buddyRequestTimes=[];
+let buddyBusy=false;
 async function sendBuddy(t){
- t=String(t||"").trim();if(!t)return;
+ t=String(t||"").trim();if(!t||buddyBusy)return;
  const box=$("#chatMessages"),fo=$("#languageSelect")?.value!=="English";
- box.insertAdjacentHTML("beforeend",'<div class="chat-bubble user-message">'+esc(t)+'</div>');
+ const user=document.createElement("div");user.className="chat-bubble user-message";user.textContent=t;box.append(user);
  const typing=document.createElement("div");typing.className="chat-bubble buddy-message";typing.textContent=fo?"Buddy svarar…":"Buddy is thinking…";box.append(typing);box.scrollTop=box.scrollHeight;
- const now=Date.now();buddyRequestTimes=buddyRequestTimes.filter(x=>now-x<60000);
- if(buddyRequestTimes.length>=2){typing.textContent=fo?"Ókeypis AI-tænastan loyvir bert tveimum spurningum um minuttin. Bíða eitt sindur og royn aftur.":"The free AI service allows only two questions per minute. Please wait a little and try again.";return}
- buddyRequestTimes.push(now);
+ buddyBusy=true;
+ const form=$("#chatForm"),sendButton=form?.querySelector('button[type="submit"],button:not([type])');if(sendButton)sendButton.disabled=true;
  const system=fo
  ? "Tú eitur Buddy og ert ein blíður, hjálpsamur Bíbliu-lestrarhjálpari. Svara á føroyskum (føroyskt mál). Greið frá Bíbliuversum í greiðum máli, gev samanhang og nevna bók, kapittul og vers, tá tað er viðkomandi. Ver virðiligur móti kristnum trúarspurningum. Um tú ikki veitst nakað, sig tað. Finn ikki uppá beinleiðis Bíbliu-tilvitnanir. Tú ert ikki prestur ella gudfrøðiligur myndugleiki."
  : "You are Buddy, a kind and helpful Bible study companion. Answer in clear English. Explain Bible passages with context, mention book, chapter and verse when relevant, and be respectful of Christian beliefs and different interpretations. If unsure, say so. Never invent direct Bible quotations. You are not a pastor or theological authority.";
  const history=[...box.querySelectorAll(".user-message,.buddy-message")].filter(el=>el!==typing).slice(-12).map(el=>({role:el.classList.contains("user-message")?"user":"assistant",content:el.textContent}));
+ const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),60000);
  try{
-  const response=await fetch("https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify({model:"Qwen3.5-397B-A17B",messages:[{role:"system",content:system},...history],max_tokens:850,temperature:0.5,stream:false}),credentials:"omit"});
-  const data=await response.json();
-  if(!response.ok)throw new Error(data?.error?.message||("AI service returned "+response.status));
+  const response=await fetch("https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"Qwen3.5-397B-A17B",messages:[{role:"system",content:system},...history],max_tokens:850,temperature:0.5,stream:false}),credentials:"omit",signal:controller.signal});
+  const raw=await response.text();let data={};try{data=raw?JSON.parse(raw):{}}catch(e){throw new Error("The AI service sent an unreadable response (HTTP "+response.status+").")}
+  if(!response.ok)throw new Error(data?.error?.message||data?.message||("AI service returned HTTP "+response.status));
   const answer=data?.choices?.[0]?.message?.content?.trim();
-  if(!answer)throw new Error("The AI returned an empty answer.");
+  if(!answer)throw new Error(data?.error?.message||"The AI service returned an empty answer.");
   typing.textContent=answer;buddyLastSpeech=answer;speakBuddy(answer);
  }catch(error){
-  typing.textContent=fo
-   ?"Buddy kann ikki fáa samband við ókeypis AI-tænastuna beint nú. Royn aftur seinni. Um trupulleikin heldur fram, kann tænastan vera niðri ella hava brúkt sítt ókeypis mark."
-   :"Buddy couldn't reach the free AI service just now. Please try again later. The service may be temporarily unavailable or its free limit may have been reached.";
   console.error("Buddy AI connection:",error);
+  const detail=error?.name==="AbortError"?"The request timed out after 60 seconds.":error?.message||"Network request failed.";
+  typing.textContent=fo
+   ?"Buddy fekk ikki svar frá AI-tænastuni. "+detail+" Kanna internetið og royn aftur."
+   :"Buddy couldn't get a reply from the AI service. "+detail+" Check your internet connection and try again. If Safari reports a network/CORS error, the service must be connected through a server-side proxy.";
+ }finally{
+  clearTimeout(timeout);buddyBusy=false;if(sendButton)sendButton.disabled=false;
+  $("#chatInput").value="";box.scrollTop=box.scrollHeight;
  }
- $("#chatInput").value="";box.scrollTop=box.scrollHeight;
 }
 $("#chatForm").addEventListener("submit",e=>{e.preventDefault();sendBuddy($("#chatInput").value)});$$(".prompt-chip").forEach(b=>b.onclick=()=>sendBuddy(b.textContent));
 const quiz=[["Who built the ark?",["Noah","Moses","David"],0],["Who defeated Goliath?",["Saul","David","Solomon"],1],["Where was Jesus born?",["Nazareth","Jerusalem","Bethlehem"],2],["Who was swallowed by a great fish?",["Jonah","Peter","Paul"],0],["What is the first book of the Bible?",["Exodus","Genesis","Psalms"],1]];let qi=0,answered=false,score=0;
