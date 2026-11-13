@@ -70,11 +70,14 @@ async function sendBuddy(t){
  const history=[...box.querySelectorAll(".user-message,.buddy-message")].filter(el=>el!==typing).slice(-12).map(el=>({role:el.classList.contains("user-message")?"user":"assistant",content:el.textContent}));
  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),60000);
  try{
-  const response=await fetch("https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"Qwen3.5-397B-A17B",messages:[{role:"system",content:system},...history],max_tokens:850,temperature:0.5,stream:false}),credentials:"omit",signal:controller.signal});
+  const response=await fetch("https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"Meta-Llama-3_3-70B-Instruct",messages:[{role:"system",content:system},...history],max_tokens:1200,temperature:0.5,stream:false}),credentials:"omit",signal:controller.signal});
   const raw=await response.text();let data={};try{data=raw?JSON.parse(raw):{}}catch(e){throw new Error("The AI service sent an unreadable response (HTTP "+response.status+").")}
   if(!response.ok)throw new Error(data?.error?.message||data?.message||("AI service returned HTTP "+response.status));
-  const answer=data?.choices?.[0]?.message?.content?.trim();
-  if(!answer)throw new Error(data?.error?.message||"The AI service returned an empty answer.");
+  const message=data?.choices?.[0]?.message;
+  let answer=message?.content;
+  if(Array.isArray(answer))answer=answer.map(part=>typeof part==="string"?part:(part?.text||"")).join("");
+  answer=typeof answer==="string"?answer.trim():"";
+  if(!answer)throw new Error(data?.error?.message||("The AI returned no visible answer (finish reason: "+(data?.choices?.[0]?.finish_reason||"unknown")+"). Try again in a moment."));
   typing.textContent=answer;buddyLastSpeech=answer;speakBuddy(answer);
  }catch(error){
   console.error("Buddy AI connection:",error);
