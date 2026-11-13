@@ -215,7 +215,7 @@ page("home");
  picker.addEventListener("change",apply);
  const observer=new MutationObserver(rs=>{const fo=picker.value!=="English";rs.forEach(r=>{r.addedNodes.forEach(n=>walk(n,fo));if(r.type==="characterData")translateText(r.target,fo);});});
  observer.observe(document.body,{subtree:true,childList:true,characterData:true});
- picker.value=localStorage.getItem("bb_language")||"English";apply();
+ picker.value="English";localStorage.setItem("bb_language","English");apply();
 })();
 
 
