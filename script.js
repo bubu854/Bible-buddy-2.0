@@ -26,7 +26,9 @@ function speakBuddy(text){
  const utterance=new SpeechSynthesisUtterance(text);
  const voices=window.speechSynthesis.getVoices();
  const selectedVoice=store.get("buddy_voice","");
- const preferred=voices.find(v=>v.voiceURI===selectedVoice)||(fo?(voices.find(v=>/^fo(-|$)/i.test(v.lang))||voices.find(v=>/^da(-|$)/i.test(v.lang))):voices.find(v=>/^en(-|$)/i.test(v.lang)));
+ const selected=voices.find(v=>v.voiceURI===selectedVoice);
+ const matchesLanguage=v=>fo?/^(fo|da)(-|$)/i.test(v.lang):/^en(-|$)/i.test(v.lang);
+ const preferred=(selected&&matchesLanguage(selected)?selected:null)||(fo?(voices.find(v=>/^fo(-|$)/i.test(v.lang))||voices.find(v=>/^da(-|$)/i.test(v.lang))):voices.find(v=>/^en(-|$)/i.test(v.lang)));
  utterance.lang=fo?"fo-FO":"en-US";if(preferred){utterance.voice=preferred;utterance.lang=preferred.lang}
  utterance.rate=0.92;utterance.pitch=1.02;
  const character=$("#buddyCharacter"),status=$("#buddyVoiceStatus");
