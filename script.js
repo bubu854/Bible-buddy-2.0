@@ -1,42 +1,36 @@
-const content = document.getElementById("content");
-
-const pages = {
-  home: { title: "Welcome to Bible Buddy ❤️", description: "Spend time with God today." },
-  bible: { title: "📖 Read the Bible", description: "Explore the Word of God. Bible reading tools are coming next." },
-  buddy: { title: "🤖 Talk to Buddy", description: "Buddy is your Bible study companion. Ask about a chapter, verse, or Bible topic. Live AI chat needs a secure AI connection before it can answer." },
-  record: { title: "🎙️ Sermon Recorder", description: "Your sermon recording tools will appear here. Recording support is being added." },
-  daily: { title: "✨ Daily Verse", description: "“Be strong and courageous. Do not be afraid.” — Joshua 1:9" },
-  journal: { title: "📓 My Journal", description: "Write down your thoughts and lessons from your Bible reading." },
-  prayer: { title: "🙏 Prayer List", description: "Keep track of the people and things you are praying for." },
-  quiz: { title: "🧠 Bible Quiz", description: "Test your Bible knowledge. Quiz activities are coming next." },
-  plans: { title: "📅 Reading Plans", description: "Choose a Bible reading plan. Reading plans are coming next." },
-  maps: { title: "🗺️ Bible Maps", description: "Explore places from the Bible. Maps are coming next." },
-  settings: { title: "⚙️ Settings", description: "Language options (including Faroese and Bemba) and appearance settings are planned here." }
-};
-
-function showPage(page) {
-  if (!content) return;
-  const selected = pages[page] || pages.home;
-  content.innerHTML = `
-    <h2>${selected.title}</h2>
-    <p>${selected.description}</p>
-    ${page !== "home" ? '<button type="button" id="backHome">🏠 Back home</button>' : ""}
-  `;
-  const backButton = document.getElementById("backHome");
-  if (backButton) backButton.addEventListener("click", () => showPage("home"));
-}
-
-document.addEventListener("click", event => {
-  const button = event.target.closest("button[data-page]");
-  if (button) showPage(button.dataset.page);
-});
-
-showPage("home");
-
-if ("serviceWorker" in navigator && location.protocol === "https:") {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js").catch(error => {
-      console.error("Bible Buddy service worker registration failed:", error);
-    });
-  });
-}
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const store={get(k,f=[]){try{return JSON.parse(localStorage.getItem("bb_"+k))??f}catch{return f}},set(k,v){localStorage.setItem("bb_"+k,JSON.stringify(v))}};
+function toast(t){const el=$("#toast");el.textContent=t;el.classList.add("show");clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.remove("show"),2300)}
+function page(p){$$(".page").forEach(x=>x.classList.toggle("active",x.id===p+"-page"));$$(".nav-item").forEach(x=>x.classList.toggle("active",x.dataset.page===p));window.scrollTo({top:0,behavior:"smooth"});if(p==="journal")renderJournal();if(p==="prayer")renderPrayer();if(p==="bible")renderSaved()}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-page]");if(b){e.preventDefault();page(b.dataset.page)}});
+const books=[["Genesis",50],["Exodus",40],["Leviticus",27],["Numbers",36],["Deuteronomy",34],["Joshua",24],["Judges",21],["Ruth",4],["1 Samuel",31],["2 Samuel",24],["1 Kings",22],["2 Kings",25],["1 Chronicles",29],["2 Chronicles",36],["Ezra",10],["Nehemiah",13],["Esther",10],["Job",42],["Psalms",150],["Proverbs",31],["Ecclesiastes",12],["Song of Solomon",8],["Isaiah",66],["Jeremiah",52],["Lamentations",5],["Ezekiel",48],["Daniel",12],["Hosea",14],["Joel",3],["Amos",9],["Obadiah",1],["Jonah",4],["Micah",7],["Nahum",3],["Habakkuk",3],["Zephaniah",3],["Haggai",2],["Zechariah",14],["Malachi",4],["Matthew",28],["Mark",16],["Luke",24],["John",21],["Acts",28],["Romans",16],["1 Corinthians",16],["2 Corinthians",13],["Galatians",6],["Ephesians",6],["Philippians",4],["Colossians",4],["1 Thessalonians",5],["2 Thessalonians",3],["1 Timothy",6],["2 Timothy",4],["Titus",3],["Philemon",1],["Hebrews",13],["James",5],["1 Peter",5],["2 Peter",3],["1 John",5],["2 John",1],["3 John",1],["Jude",1],["Revelation",22]];
+const bookSelect=$("#bookSelect"),chapterSelect=$("#chapterSelect");
+if(bookSelect){books.forEach(([n])=>bookSelect.add(new Option(n,n)));function chapters(){chapterSelect.innerHTML="";const b=books.find(x=>x[0]===bookSelect.value);for(let i=1;i<=b[1];i++)chapterSelect.add(new Option("Chapter "+i,i));$("#readingArea").innerHTML="<h2>"+bookSelect.value+" "+chapterSelect.value+"</h2><p class='muted'>Chapter selected. Connect a Bible text source to read the full chapter here.</p>"}bookSelect.addEventListener("change",chapters);chapterSelect.addEventListener("change",chapters);chapters()}
+$("#copyDaily").onclick=()=>{const v="Joshua 1:9 — Be strong and courageous. Do not be afraid; do not be discouraged, for the Lord your God will be with you wherever you go.";navigator.clipboard?.writeText(v).then(()=>toast("Verse copied")).catch(()=>toast("Copy isn't available in this browser"))};
+$("#saveDaily").onclick=()=>{const a=store.get("verses");if(!a.some(x=>x.ref==="Joshua 1:9"))a.push({ref:"Joshua 1:9",text:"Be strong and courageous. Do not be afraid; do not be discouraged, for the Lord your God will be with you wherever you go."});store.set("verses",a);renderSaved();toast("Verse saved")};
+function renderSaved(){const el=$("#savedVerses");if(!el)return;const a=store.get("verses");el.innerHTML=a.length?a.map(x=>'<div class="saved-item"><strong>'+x.ref+'</strong><p>'+x.text+'</p></div>').join(""):"No saved verses yet."}
+$("#journalForm").addEventListener("submit",e=>{e.preventDefault();const a=store.get("journal");a.unshift({title:$("#journalTitle").value,text:$("#journalText").value,date:new Date().toLocaleDateString()});store.set("journal",a);e.target.reset();renderJournal();toast("Journal entry saved")});
+function renderJournal(){const el=$("#journalEntries");if(!el)return;const a=store.get("journal");el.innerHTML=a.length?a.map(x=>'<article class="saved-item"><strong>'+esc(x.title)+' · '+esc(x.date)+'</strong><p>'+esc(x.text)+'</p></article>').join(""):"No journal entries yet."}
+$("#prayerForm").addEventListener("submit",e=>{e.preventDefault();const a=store.get("prayers");a.unshift({text:$("#prayerInput").value,done:false});store.set("prayers",a);e.target.reset();renderPrayer();toast("Prayer request added")});
+function renderPrayer(){const el=$("#prayerEntries");if(!el)return;const a=store.get("prayers");el.innerHTML=a.length?a.map((x,i)=>'<div class="saved-item prayer-item"><label><input type="checkbox" data-prayer="'+i+'" '+(x.done?"checked":"")+'> '+esc(x.text)+'</label><button class="delete-btn" data-delete-prayer="'+i+'">Remove</button></div>').join(""):"No prayer requests yet."}
+document.addEventListener("change",e=>{if(e.target.matches("[data-prayer]")){const a=store.get("prayers");a[+e.target.dataset.prayer].done=e.target.checked;store.set("prayers",a)}});
+document.addEventListener("click",e=>{if(e.target.matches("[data-delete-prayer]")){const a=store.get("prayers");a.splice(+e.target.dataset.deletePrayer,1);store.set("prayers",a);renderPrayer()}});
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+const prompts={ "Explain John 3:16":"John 3:16 is a well-known summary of God's love: it says God gave his Son so that people who believe may have eternal life. Read the whole passage around the verse to understand its context.", "Who was Moses?":"Moses was a leader chosen by God to lead the Israelites out of slavery in Egypt. His story is told mainly in Exodus, Leviticus, Numbers and Deuteronomy.", "Help me pray":"You could begin simply: “God, thank you for being with me. Please guide me today, help me understand your Word, and show me how to love others. Amen.”" };
+function sendBuddy(t){if(!t.trim())return;const box=$("#chatMessages");box.insertAdjacentHTML("beforeend",'<div class="chat-bubble user-message">'+esc(t)+'</div>');const answer=prompts[t]||"I've saved your question in this conversation, but live AI Bible explanations are not connected yet. Try reading the surrounding Bible passage and noting what it teaches about God, people, and how to live.";box.insertAdjacentHTML("beforeend",'<div class="chat-bubble buddy-message">'+esc(answer)+'</div>');$("#chatInput").value="";box.scrollTop=box.scrollHeight}
+$("#chatForm").addEventListener("submit",e=>{e.preventDefault();sendBuddy($("#chatInput").value)});$$(".prompt-chip").forEach(b=>b.onclick=()=>sendBuddy(b.textContent));
+const quiz=[["Who built the ark?",["Noah","Moses","David"],0],["Who defeated Goliath?",["Saul","David","Solomon"],1],["Where was Jesus born?",["Nazareth","Jerusalem","Bethlehem"],2],["Who was swallowed by a great fish?",["Jonah","Peter","Paul"],0],["What is the first book of the Bible?",["Exodus","Genesis","Psalms"],1]];let qi=0,answered=false,score=0;
+function drawQuiz(){const q=quiz[qi];$("#quizProgress").textContent="QUESTION "+(qi+1)+" OF "+quiz.length;$("#quizQuestion").textContent=q[0];$("#quizAnswers").innerHTML=q[1].map((a,i)=>'<button class="quiz-answer" data-answer="'+i+'">'+a+'</button>').join("");$("#quizFeedback").textContent="";$("#quizNext").disabled=true;$("#quizNext").textContent=qi===quiz.length-1?"Finish quiz":"Next question";answered=false}
+$("#quizAnswers").addEventListener("click",e=>{const b=e.target.closest("[data-answer]");if(!b||answered)return;answered=true;const chosen=+b.dataset.answer,correct=quiz[qi][2];if(chosen===correct){score++;$("#quizFeedback").textContent="Correct! Well done."}else $("#quizFeedback").textContent="Not quite. The answer is "+quiz[qi][1][correct]+".";$$(".quiz-answer").forEach((x,i)=>{if(i===correct)x.classList.add("correct");else if(i===chosen)x.classList.add("wrong")});$("#quizNext").disabled=false});
+$("#quizNext").onclick=()=>{if(!answered)return;if(qi===quiz.length-1){$("#quizQuestion").textContent="You scored "+score+" out of "+quiz.length+"!";$("#quizAnswers").innerHTML="";$("#quizFeedback").textContent="Keep exploring the Bible.";$("#quizNext").textContent="Try again";$("#quizNext").onclick=()=>{qi=0;score=0;drawQuiz()};}else{qi++;drawQuiz()}};drawQuiz();
+const planContent={hope:["Psalm 46:1","Romans 15:13","Isaiah 40:31","Jeremiah 29:11","Psalm 23:1","John 14:27","Romans 8:38–39"],jesus:["Luke 1","Luke 2","Matthew 3","Matthew 4","Mark 1","John 1","Matthew 5"],proverbs:Array.from({length:30},(_,i)=>"Proverbs "+(i+1))};
+$$("[data-plan]").forEach(b=>b.onclick=()=>{const p=planContent[b.dataset.plan],el=$("#planDetail");el.classList.remove("hidden");el.innerHTML="<h3>"+b.parentElement.querySelector("h3").textContent+"</h3><p class='muted'>Suggested daily passages:</p><ol>"+p.map(x=>"<li>"+x+"</li>").join("")+"</ol><p class='small-note'>Mark each passage as read in your Bible app or printed Bible.</p>";el.scrollIntoView({behavior:"smooth",block:"nearest"})});
+let recorder=null,chunks=[],startedAt=0,ticker=null;
+$("#recordStart").onclick=async()=>{if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){toast("Recording is not supported in this browser");return}try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});recorder=new MediaRecorder(stream);chunks=[];recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};recorder.onstop=()=>{const blob=new Blob(chunks,{type:recorder.mimeType||"audio/webm"});const url=URL.createObjectURL(blob);const name="Sermon recording · "+new Date().toLocaleString();const row=document.createElement("div");row.className="saved-item";const title=document.createElement("strong");title.textContent=name;const audio=document.createElement("audio");audio.controls=true;audio.src=url;row.append(title,audio);$("#recordingsList").prepend(row);stream.getTracks().forEach(t=>t.stop());$("#recordStatus").textContent="Recording saved for this session"};recorder.start();startedAt=Date.now();$("#recordStatus").textContent="Recording…";$("#recordOrb").classList.add("recording");$("#recordStart").disabled=true;$("#recordStop").disabled=false;ticker=setInterval(()=>{const n=Math.floor((Date.now()-startedAt)/1000);$("#recordTimer").textContent=String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0")},500)}catch(e){toast("Microphone permission was not granted")}};
+$("#recordStop").onclick=()=>{if(recorder?.state==="recording"){recorder.stop();clearInterval(ticker);$("#recordOrb").classList.remove("recording");$("#recordStart").disabled=false;$("#recordStop").disabled=true;$("#recordStatus").textContent="Finishing recording…"}};
+$("#languageSelect").value=store.get("language","English");$("#languageSelect").onchange=e=>{store.set("language",e.target.value);toast("Language preference saved")};
+$("#darkToggle").checked=store.get("dark",true);$("#darkToggle").onchange=e=>{store.set("dark",e.target.checked);document.body.classList.toggle("light-mode",!e.target.checked)};
+if(!store.get("dark",true))document.body.classList.add("light-mode");
+$("#exportData").onclick=()=>{const data={journal:store.get("journal"),prayers:store.get("prayers"),verses:store.get("verses")};const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="bible-buddy-notes.json";a.click();URL.revokeObjectURL(url);toast("Your notes export is ready")};
+if("serviceWorker"in navigator&&location.protocol==="https:")window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(console.error));
+page("home");
