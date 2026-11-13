@@ -4,3 +4,23 @@
 .highlight-toggle{margin:8px 0 12px}.highlight-toggle.highlight-active{background:#d4b46b;color:#03060d;border-color:#f0d99b}.bible-verse{padding:9px 10px;border-radius:8px;line-height:1.8;cursor:pointer}.bible-verse sup{color:var(--gold);font-weight:800;margin-right:5px}.bible-verse.verse-highlight{background:#254b7d;outline:1px solid #d4b46b;color:#fff}.bible-external-link{display:inline-block;text-decoration:none;margin:6px 6px 6px 0}
 
 .faroese-reader-frame{width:100%;height:70vh;min-height:520px;border:1px solid #182c50;border-radius:14px;overflow:hidden;background:#03060d;margin:14px 0}.faroese-reader-frame iframe{display:block;width:100%;height:100%;border:0;background:#03060d}.bible-external-link{display:block;text-align:center;margin:10px 0}
+
+
+/* Buddy character and speaking animation */
+.buddy-character-card{display:flex;align-items:center;gap:14px;padding:16px;margin:0 0 14px;border:1px solid #b99b5a66;border-radius:18px;background:linear-gradient(130deg,#14294a,#0b1425 70%);overflow:hidden}
+.buddy-character{position:relative;flex:0 0 132px;height:154px;display:grid;place-items:end center}
+.buddy-character svg{position:relative;z-index:1;width:132px;height:154px;filter:drop-shadow(0 8px 10px #0006)}
+.buddy-halo{position:absolute;width:120px;height:120px;top:12px;border-radius:50%;background:radial-gradient(circle,#d4b46b35,transparent 70%);border:1px solid #d4b46b35}
+.buddy-sparkle{position:absolute;right:4px;top:14px;color:var(--gold2);font-size:22px;animation:buddyTwinkle 2s ease-in-out infinite}
+.buddy-character-copy{min-width:0;flex:1}
+.buddy-character-copy .eyebrow{font-size:8px;margin-bottom:7px}
+.buddy-character-copy strong{display:block;font-size:17px;color:var(--gold2)}
+.buddy-character-copy p{font-size:11px;line-height:1.45;color:var(--muted);margin:6px 0 10px}
+.buddy-voice-controls{display:flex;flex-wrap:wrap;gap:7px}
+.buddy-voice-controls button{font-size:10px;padding:10px 11px}
+.buddy-character.speaking svg{animation:buddyBob .55s ease-in-out infinite alternate}
+.buddy-character.speaking .buddy-mouth{animation:buddyTalk .22s ease-in-out infinite alternate;transform-origin:90px 127px}
+@keyframes buddyBob{to{transform:translateY(-4px)}}
+@keyframes buddyTalk{to{d:path("M78 122 Q90 145 103 122")}}
+@keyframes buddyTwinkle{50%{opacity:.35;transform:scale(.8) rotate(25deg)}}
+@media(max-width:390px){.buddy-character-card{gap:8px;padding:12px}.buddy-character{flex-basis:112px;height:140px}.buddy-character svg{width:116px;height:140px}.buddy-character-copy strong{font-size:15px}}
