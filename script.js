@@ -287,3 +287,131 @@ page("home");
  $("#bibleLanguageSelect")?.addEventListener("change",()=>setTimeout(()=>{loadNote();filterVerses()},500));
  refreshLabels();
 })();
+
+
+/* Version 23 features: reminders, deep study, audio Bible, timeline, voice chat, sermon analysis, cross references, study groups */
+(function(){
+ const $=s=>document.querySelector(s),fo=()=>$("#languageSelect")?.value!=="English";
+ const say=(en,far)=>fo()?far:en;
+ const style=document.createElement("style");
+ style.textContent=".bb-timeline{padding-left:22px}.bb-timeline li{padding:8px 0 14px 8px;border-left:2px solid #344b6b}.bb-timeline li::marker{color:#d8b66d}.bb-timeline p{color:#aab7ca;margin:5px 0}.bb-group-item{padding:12px 0;border-bottom:1px solid #26364d}.bb-group-item:last-child{border:0}.bb-group-item p{white-space:pre-wrap;color:#aab7ca}.chat-form #buddyListenButton{min-width:44px;padding:8px}";
+ document.head.append(style);
+
+ // Daily reminder: local browser notification while app is open; not a background push service.
+ const reminderTime=$("#dailyReminderTime"),reminderStatus=$("#dailyReminderStatus");
+ if(reminderTime){reminderTime.value=localStorage.getItem("bb_daily_reminder_time")||"08:00";
+  if(localStorage.getItem("bb_daily_reminder_enabled")==="yes")reminderStatus.textContent=say("Reminder is enabled for when the app is open.","Áminning er tendrað, tá appin er opin.");
+ }
+ let reminderTimer=null;
+ function scheduleReminder(){
+  clearTimeout(reminderTimer);if(localStorage.getItem("bb_daily_reminder_enabled")!=="yes")return;
+  const [h,m]=(reminderTime.value||"08:00").split(":").map(Number),now=new Date(),next=new Date();next.setHours(h,m,0,0);if(next<=now)next.setDate(next.getDate()+1);
+  reminderTimer=setTimeout(async()=>{const title=say("Time for your Bible reading","Tíð at lesa í Bíbliuni"),body=say("Open Bible Buddy for today's time in Scripture.","Lat Bible Buddy upp til dagsins bíbliulestur.");
+   try{if("Notification"in window&&Notification.permission==="granted"){if(navigator.serviceWorker?.controller){const reg=await navigator.serviceWorker.ready;reg.showNotification(title,{body,icon:"./icon.svg",tag:"bb-daily-reading"});}else new Notification(title,{body});}}catch(e){}
+   scheduleReminder();
+  },Math.min(next-now,2147480000));
+ }
+ $("#enableDailyReminder")?.addEventListener("click",async()=>{
+  if(!("Notification"in window)){reminderStatus.textContent=say("Notifications are not supported in this browser.","Fráboðanir eru ikki tøkar í hesum kaga.");return}
+  const permission=Notification.permission==="granted"?"granted":await Notification.requestPermission();
+  if(permission!=="granted"){reminderStatus.textContent=say("Notification permission was not granted. You can still set a reminder in your phone's Clock app.","Loyvi til fráboðan varð ikki givið.");return}
+  localStorage.setItem("bb_daily_reminder_time",reminderTime.value||"08:00");localStorage.setItem("bb_daily_reminder_enabled","yes");scheduleReminder();
+  reminderStatus.textContent=say("Daily reminder is set for "+reminderTime.value+" while the app is open. It cannot notify when the browser is fully closed.","Daglig áminning er sett til "+reminderTime.value+", meðan appin er opin. Hon kann ikki boða frá, tá kaga er heilt latin aftur.");
+  toast(say("Daily reminder enabled","Daglig áminning tendrað"));
+ });
+ reminderTime?.addEventListener("change",()=>{localStorage.setItem("bb_daily_reminder_time",reminderTime.value);scheduleReminder()});
+ scheduleReminder();
+
+ // Audio Bible: uses the visible chapter text and device speech voices.
+ let bibleUtterance=null;
+ $("#audioBiblePlay")?.addEventListener("click",()=>{
+  const verses=[...$("#readingArea").querySelectorAll(".bible-verse")].map(v=>v.textContent.trim());
+  if(!verses.length){toast(say("Open an English Bible chapter first.","Lat fyrst ein enskan bíbliukapittul upp."));return}
+  if(!("speechSynthesis"in window)){toast(say("Audio reading is not supported here.","Ljóðlesnaður er ikki tøkur her."));return}
+  speechSynthesis.cancel();bibleUtterance=new SpeechSynthesisUtterance(verses.join(". "));
+  const lang=fo()?"fo-FO":"en-US";bibleUtterance.lang=lang;
+  const voices=speechSynthesis.getVoices();const match=voices.find(v=>v.lang.toLowerCase().startsWith(fo()?"fo":"en"));if(match)bibleUtterance.voice=match;
+  bibleUtterance.onstart=()=>$("#audioBibleStatus").textContent=say("Reading chapter aloud…","Lesur kapittulin hart…");
+  bibleUtterance.onend=()=>$("#audioBibleStatus").textContent=say("Finished reading.","Liðugur at lesa.");
+  bibleUtterance.onerror=()=>$("#audioBibleStatus").textContent=say("This voice could not read the chapter. Try another device voice.","Henda røddin kundi ikki lesa kapittulin.");
+  speechSynthesis.speak(bibleUtterance);
+ });
+ $("#audioBibleStop")?.addEventListener("click",()=>{speechSynthesis?.cancel();$("#audioBibleStatus").textContent=say("Audio stopped.","Ljóðlesnaður steðgaður.")});
+
+ // Connected passages. Suggestions are curated links, not an exhaustive concordance.
+ const related={
+  "John 3:16":["Romans 5:8","1 John 4:9–10","John 3:17","Ephesians 2:4–5"],
+  "Romans 8:28":["Genesis 50:20","Ephesians 1:11","Romans 8:18","James 1:2–4"],
+  "Psalm 23:1":["John 10:11","Ezekiel 34:11–16","Philippians 4:19"],
+  "Philippians 4:6":["Matthew 6:25–34","1 Peter 5:7","Psalm 55:22"],
+  "Isaiah 41:10":["Deuteronomy 31:6","Joshua 1:9","Psalm 46:1"],
+  "Galatians 2:20":["Romans 6:6–11","2 Corinthians 5:17","Colossians 3:3–4"],
+  "Matthew 5:14":["John 8:12","Ephesians 5:8","Philippians 2:15"],
+  "1 Corinthians 13:4":["1 John 4:7–8","Colossians 3:12–14","John 15:12–13"]
+ };
+ const cross=$("#connectedVerses");
+ function renderRelated(ref){
+  if(!cross)return;const list=related[ref]||[];
+  cross.innerHTML="<strong>"+ref+"</strong><p class='small-note'>"+(list.length?say("Related passages to explore:","Sambundin brot at kanna:"):say("No curated links for this verse yet. Ask Buddy to find related passages.","Eingin listi er tøkur til hetta versið enn. Bið Buddy finna sambundin vers."))+"</p>";
+  list.forEach(r=>{const b=document.createElement("button");b.type="button";b.className="secondary-btn";b.textContent=r;b.addEventListener("click",()=>openReference(r));cross.append(b)});
+ }
+ function openReference(ref){
+  const match=ref.match(/^(.+?)\s+(\d+)(?::|$)/);if(!match){$("#chatInput").value="Explain "+ref+" and its context.";page("buddy");sendBuddy($("#chatInput").value);return}
+  const books=[...$("#bookSelect").options].map(o=>o.value);const book=match[1],chapter=match[2];
+  if(books.includes(book)){$("#bookSelect").value=book;$("#bookSelect").dispatchEvent(new Event("change"));$("#chapterSelect").value=chapter;$("#chapterSelect").dispatchEvent(new Event("change"));$("#bibleLanguageSelect").value="en";$("#bibleLanguageSelect").dispatchEvent(new Event("change"));page("bible");}
+  else{page("buddy");sendBuddy("Explain "+ref+" in context.")}
+ }
+ $("#readingArea")?.addEventListener("click",e=>{
+  const verse=e.target.closest(".bible-verse");if(!verse)return;
+  const heading=$("#readingArea h2")?.textContent||"",ref=heading.split(" · ")[0]+" "+verse.dataset.verse;renderRelated(ref);
+ });
+ // Deep Bible study prompt
+ $("#startDeepStudy")?.addEventListener("click",()=>{
+  const passage=$("#deepStudyPassage").value.trim();if(!passage){toast(say("Enter a passage or topic first.","Skriva fyrst eitt bíbliuvers ella evni."));return}
+  const focus=$("#deepStudyFocus").value;
+  const prompt=fo()
+   ?"Ger eina djúpa bíbliugransking á føroyskum av "+passage+". Høvuðsdentur: "+focus+". Greið frá samanhangi, hvørjum teksturin varð skrivaður til, bygnaði, høvuðsevnum, týdningi, sambondum við onnur bíbliuvers og praktiskari nýtslu. Skil millum tað, teksturin beinleiðis sigur, og tulkingar. Uppfinn ikki sitat, søguligar upplýsingar ella upprunamálsfrøðiligar upplýsingar. Sig frá, um tú ert óvissur."
+   :"Create a careful deep Bible study of "+passage+". Focus: "+focus+". Explain literary and historical context, original audience, structure, key themes, meaning, connections to other passages, and practical application. Distinguish what the text explicitly says from interpretation. Do not invent quotations, historical facts, or original-language claims. Note uncertainty and mention significant interpretive differences fairly.";
+  page("buddy");sendBuddy(prompt);
+ });
+
+ // Voice conversation: browser speech-to-text feeds Buddy; spoken answers use existing speech synthesis.
+ let voiceRec=null,voiceActive=false;
+ $("#buddyListenButton")?.addEventListener("click",()=>{
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){toast(say("Voice input is not supported by this browser. Use your keyboard microphone.","Røddarinnlesing er ikki stuðlað. Brúka mikrofonina á knappaborðinum."));return}
+  if(voiceActive){voiceRec?.stop();voiceActive=false;$("#buddyListenButton").textContent="🎙";return}
+  voiceRec=new SR();voiceRec.lang=fo()?"fo-FO":"en-US";voiceRec.interimResults=false;voiceRec.continuous=false;
+  voiceRec.onstart=()=>{voiceActive=true;$("#buddyListenButton").textContent="■";$("#chatInput").placeholder=say("Listening…","Lurti…")};
+  voiceRec.onresult=e=>{const spoken=e.results?.[0]?.[0]?.transcript||"";if(spoken){$("#chatInput").value=spoken;sendBuddy(spoken)}};
+  voiceRec.onerror=e=>{toast(say("Voice input stopped: ","Røddarinnlesing steðgaði: ")+e.error)};
+  voiceRec.onend=()=>{voiceActive=false;$("#buddyListenButton").textContent="🎙";$("#chatInput").placeholder=say("Write a Bible question…","Skriva ein spurning um Bíbliuna…")};
+  try{voiceRec.start()}catch(e){toast(say("Could not start the microphone.","Kundi ikki tendra mikrofonina."))}
+ });
+
+ // Sermon intelligence: strengthen the existing transcript breakdown without claiming audio-file transcription.
+ const breakdown=$("#breakdownTranscript");
+ if(breakdown)breakdown.addEventListener("click",()=>{
+  const box=$("#sermonTranscript"),transcript=box?.value.trim();if(!transcript)return;
+  const prompt=fo()
+   ?"Greina henda prædikuavskrift á føroyskum. Gev: 1) stutt yvirlit, 2) høvuðspunkt og boðskap, 3) allar nevndar Bíbliu-tilvísingar, 4) frágreiðing av tekstunum í samanhangi, 5) týdningarmiklar niðurstøður, 6) spurningar til bólkakjak, 7) ítøkilig stig at brúka í gerandisdegnum, 8) bønarhugskot. Ger vart við ógreið orð í avskriftini. Uppfinn ikki tilvísingar ella sitat. Her er avskriftin:\n\n"+transcript
+   :"Analyze this sermon transcript. Provide: 1) concise summary, 2) main points and central message, 3) every Bible reference mentioned, 4) explanation of the passages in context, 5) key takeaways, 6) discussion questions for a study group, 7) practical next steps, and 8) a short prayer idea. Flag unclear transcript wording. Never invent references or quotations. Transcript:\n\n"+transcript;
+  page("buddy");sendBuddy(prompt);
+ },{once:true});
+
+ // Study groups are local-first. Share/export creates a portable text copy; no cloud sync is implied.
+ function groupData(){try{return JSON.parse(localStorage.getItem("bb_study_groups")||"[]")}catch(e){return []}}
+ function renderGroups(){
+  const list=$("#studyGroupsList");if(!list)return;const groups=groupData();list.innerHTML="";
+  if(!groups.length){list.textContent=say("No group studies saved yet.","Eingin bólkalesnaður goymdur enn.");return}
+  groups.forEach((g,i)=>{const el=document.createElement("article");el.className="bb-group-item";const title=document.createElement("strong");title.textContent=g.name;const passage=document.createElement("p");passage.textContent=g.passage;const notes=document.createElement("p");notes.textContent=g.notes;const del=document.createElement("button");del.className="delete-btn";del.textContent=say("Delete","Strika");del.addEventListener("click",()=>{const a=groupData();a.splice(i,1);localStorage.setItem("bb_study_groups",JSON.stringify(a));renderGroups()});el.append(title,passage,notes,del);list.append(el)});
+ }
+ function currentGroup(){return {name:$("#groupName")?.value.trim()||"Bible study",passage:$("#groupPassage")?.value.trim()||"",notes:$("#groupNotes")?.value.trim()||"",updated:new Date().toISOString()}}
+ $("#saveStudyGroup")?.addEventListener("click",()=>{const g=currentGroup();if(!g.passage&&!g.notes){toast(say("Add a passage or notes first.","Legg fyrst eitt vers ella notur aftrat."));return}const a=groupData();a.unshift(g);localStorage.setItem("bb_study_groups",JSON.stringify(a));renderGroups();toast(say("Study saved on this device.","Lesnaður goymdur á hesi telefonini."))});
+ $("#shareStudyGroup")?.addEventListener("click",async()=>{
+  const g=currentGroup();if(!g.passage&&!g.notes){toast(say("Add a passage or notes first.","Legg fyrst eitt vers ella notur aftrat."));return}
+  const text="Bible Buddy study group: "+g.name+"\nPassage/topic: "+g.passage+"\n\nNotes and questions:\n"+g.notes;
+  try{if(navigator.share)await navigator.share({title:g.name,text});else{await navigator.clipboard.writeText(text);toast(say("Study copied to clipboard.","Lesnaður avritaður."))}}catch(e){if(e.name!=="AbortError")toast(say("Could not share this study.","Kundi ikki deila lesnaðin."))}
+ });
+ renderGroups();
+})();
