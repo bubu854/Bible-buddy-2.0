@@ -2,41 +2,86 @@
 const content = document.getElementById("content");
 
 const pages = {
-  home: ["Welcome to Bible Buddy ❤️", "Spend time with God today."],
-  bible: ["📖 Read the Bible", "Your Bible library will go here."],
-  buddy: ["🤖 Talk to Buddy", "Ask Buddy questions about the Bible."],
-  record: ["🎙️ Sermon Recorder", "Recording tools will go here."],
-  daily: ["✨ Daily Verse", "Be strong and courageous. — Joshua 1:9"],
-  journal: ["📓 My Journal", "Write down your thoughts and lessons."],
-  prayer: ["🙏 Prayer List", "Keep your prayers here."],
-  quiz: ["🧠 Bible Quiz", "Test your Bible knowledge."],
-  plans: ["📅 Reading Plans", "Choose a Bible reading plan."],
-  maps: ["🗺️ Bible Maps", "Explore places from the Bible."],
-  settings: ["⚙️ Settings", "Settings will go here."]
+  home: {
+    title: "Welcome to Bible Buddy ❤️",
+    description: "Spend time with God today."
+  },
+  bible: {
+    title: "📖 Read the Bible",
+    description: "Explore the Word of God."
+  },
+  buddy: {
+    title: "🤖 Talk to Buddy",
+    description: "Ask Buddy anything about the Bible."
+  },
+  record: {
+    title: "🎙️ Sermon Recorder",
+    description: "Record your sermons and notes."
+  },
+  daily: {
+    title: "✨ Daily Verse",
+    description: "Be strong and courageous. — Joshua 1:9"
+  },
+  journal: {
+    title: "📓 My Journal",
+    description: "Write down your thoughts and lessons."
+  },
+  prayer: {
+    title: "🙏 Prayer List",
+    description: "Keep track of your prayers."
+  },
+  quiz: {
+    title: "🧠 Bible Quiz",
+    description: "Test your Bible knowledge."
+  },
+  plans: {
+    title: "📅 Reading Plans",
+    description: "Choose a Bible reading plan."
+  },
+  maps: {
+    title: "🗺️ Bible Maps",
+    description: "Explore places from the Bible."
+  },
+  settings: {
+    title: "⚙️ Settings",
+    description: "Customize your Bible Buddy experience."
+  }
 };
 
 function showPage(page) {
+  if (!content) {
+    console.error("Bible Buddy: content element not found.");
+    return;
+  }
+
   const selected = pages[page] || pages.home;
 
   content.innerHTML = `
-    <h2>${selected[0]}</h2>
-    <p>${selected[1]}</p>
-    <button id="backHome">🏠 Back home</button>
+    <h2>${selected.title}</h2>
+    <p>${selected.description}</p>
+    ${page !== "home"
+      ? '<button id="backHome">🏠 Back home</button>'
+      : ""}
   `;
 
-  document.getElementById("backHome").addEventListener("click", () => {
-    showPage("home");
-  });
+  const backButton = document.getElementById("backHome");
+
+  if (backButton) {
+    backButton.addEventListener("click", () => {
+      showPage("home");
+    });
+  }
 }
 
-document.querySelectorAll("[data-page]").forEach(button => {
-  button.addEventListener("click", () => {
+// Navigation
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-page]");
+
+  if (button) {
     showPage(button.dataset.page);
-  });
+  }
 });
 
-document.getElementById("settings").addEventListener("click", () => {
-  showPage("settings");
-});
-
+// Start app
 showPage("home");
+
