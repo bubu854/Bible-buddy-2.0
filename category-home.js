@@ -12,6 +12,7 @@ const groups=[
 ];
 const classify=(title,page)=>{
 const t=title.toLowerCase();
+if(/verse wallpaper maker/.test(t)||["wallpaper","wallpapers","versewallpapermaker","verse-wallpaper-maker"].includes(page))return 5;
 if(/bible doodle studio|bible comic creator|comic creator|creative studio|art studio|sticker maker|verse animation|worship poster|profile designer/.test(t)||["artstudio","comiccreator","stickers","verseanimation","worshipposter","profiledesigner"].includes(page))return 6;
 if(/read the bible|audio bible|connected verses|bible timeline|bible places|reading plans/.test(t))return 0;
 if(/ask buddy|voice conversation|buddy voice|buddy personality/.test(t))return 1;
