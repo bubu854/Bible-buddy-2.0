@@ -217,3 +217,73 @@ page("home");
  observer.observe(document.body,{subtree:true,childList:true,characterData:true});
  picker.value=localStorage.getItem("bb_language")||"English";apply();
 })();
+
+
+/* Version 22: daily reading habit, chapter search and study notes */
+(function(){
+ const $=s=>document.querySelector(s);
+ const isFo=()=>$("#languageSelect")?.value!=="English";
+ const words={
+  en:{streak:"Your reading streak",done:"Mark today's reading complete",days:"day streak",total:"chapters completed",search:"Search this chapter…",notes:"Chapter study notes",placeholder:"Write what stood out, questions, or what you want to remember…",save:"Save chapter notes",saved:"Notes saved on this device.",empty:"No notes saved for this chapter yet.",complete:"Today's reading marked complete!",already:"Today's reading is already complete.",noMatch:"No matching verses in this chapter."},
+  fo:{streak:"Títt lesistrik",done:"Merk dagsins lesnað sum liðnan",days:"dagar á rað",total:"kapitlar lisnir",search:"Leita í hesum kapitlinum…",notes:"Notur til kapitlið",placeholder:"Skriva tað, sum gjørdi inntrykk, spurningar ella tað, tú vilt minnast…",save:"Goym notur til kapitlið",saved:"Notur eru goymdar á hesi telefonini.",empty:"Eingir notur eru goymdar til hetta kapitlið enn.",complete:"Dagsins lesnaður er merktur sum liðugur!",already:"Dagsins lesnaður er longu liðugur.",noMatch:"Einki vers samsvarar við leitingina."}
+ };
+ const t=k=>words[isFo()?"fo":"en"][k];
+ const style=document.createElement("style");
+ style.textContent=".bb-extra-card{background:linear-gradient(145deg,#101d32,#080e19);border:1px solid #263a58;border-radius:16px;padding:16px;margin:14px 0;color:#edf2fb}.bb-extra-card h3{margin:0 0 10px}.bb-extra-muted{color:#aab7ca;font-size:.88rem}.bb-extra-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.bb-extra-row input{flex:1;min-width:150px}.bb-extra-card textarea,.bb-extra-card input{box-sizing:border-box;width:100%;background:#070d18;color:#fff;border:1px solid #344763;border-radius:10px;padding:12px;margin:8px 0}.bb-extra-card button{margin:6px 0}.bb-extra-stats{display:flex;gap:18px;flex-wrap:wrap;margin:12px 0}.bb-extra-stat strong{display:block;color:#e0c27c;font-size:1.45rem}.bb-search-hidden{display:none!important}";
+ document.head.append(style);
+ const home=$("#home-page");
+ if(home&&!$("#bbReadingStreak")){
+  const card=document.createElement("section");card.id="bbReadingStreak";card.className="bb-extra-card";
+  card.innerHTML='<h3 data-bb="streak"></h3><div class="bb-extra-stats"><div class="bb-extra-stat"><strong id="bbStreakCount">0</strong><span id="bbStreakDays"></span></div><div class="bb-extra-stat"><strong id="bbChapterCount">0</strong><span id="bbChapterLabel"></span></div></div><button class="primary-btn" id="bbMarkRead"></button><p class="bb-extra-muted">Your progress is saved privately on this device.</p>';
+  const target=home.querySelector(".verse-card");if(target)target.after(card);else home.prepend(card);
+ }
+ const biblePanel=$("#readingArea")?.closest(".panel");
+ if(biblePanel&&!$("#bbChapterTools")){
+  const tools=document.createElement("div");tools.id="bbChapterTools";tools.className="bb-extra-card";
+  tools.innerHTML='<h3 data-bb="notes"></h3><input id="bbChapterSearch" type="search" aria-label="Search this chapter"><textarea id="bbChapterNote" rows="4"></textarea><div class="bb-extra-row"><button type="button" class="secondary-btn" id="bbSaveChapterNote"></button><span id="bbNoteStatus" class="bb-extra-muted"></span></div><p id="bbNoSearchResults" class="bb-extra-muted" hidden></p>';
+  const reading=$("#readingArea");reading.after(tools);
+ }
+ function currentKey(){return ($("#bookSelect")?.value||"Genesis")+"|"+($("#chapterSelect")?.value||"1")}
+ function refreshLabels(){
+  const fo=isFo();const streak=$("#bbReadingStreak");
+  if(streak){streak.querySelector('[data-bb="streak"]').textContent=t("streak");$("#bbStreakDays").textContent=t("days");$("#bbChapterLabel").textContent=t("total");$("#bbMarkRead").textContent=t("done")}
+  const tools=$("#bbChapterTools");
+  if(tools){tools.querySelector('[data-bb="notes"]').textContent=t("notes");$("#bbChapterSearch").placeholder=t("search");$("#bbChapterNote").placeholder=t("placeholder");$("#bbSaveChapterNote").textContent=t("save")}
+  refreshStreak();loadNote();filterVerses();
+ }
+ function dates(){try{return JSON.parse(localStorage.getItem("bb_read_days")||"[]")}catch(e){return []}}
+ function refreshStreak(){
+  const days=dates(),today=new Date();const key=today.toLocaleDateString("en-CA");let streak=0;
+  const set=new Set(days);const cursor=new Date(today);
+  if(!set.has(key))cursor.setDate(cursor.getDate()-1);
+  while(set.has(cursor.toLocaleDateString("en-CA"))&&streak<400){streak++;cursor.setDate(cursor.getDate()-1)}
+  if($("#bbStreakCount"))$("#bbStreakCount").textContent=streak;
+  if($("#bbChapterCount"))$("#bbChapterCount").textContent=localStorage.getItem("bb_chapters_read_count")||"0";
+ }
+ $("#bbMarkRead")?.addEventListener("click",()=>{
+  const today=new Date().toLocaleDateString("en-CA"),days=dates();
+  if(days.includes(today)){toast(t("already"));return}
+  days.push(today);localStorage.setItem("bb_read_days",JSON.stringify(days));
+  localStorage.setItem("bb_chapters_read_count",String((Number(localStorage.getItem("bb_chapters_read_count"))||0)+1));
+  refreshStreak();toast(t("complete"));
+ });
+ function loadNote(){
+  const box=$("#bbChapterNote");if(!box)return;
+  try{const notes=JSON.parse(localStorage.getItem("bb_chapter_notes")||"{}");box.value=notes[currentKey()]||"";$("#bbNoteStatus").textContent=box.value?t("saved"):t("empty")}catch(e){box.value=""}
+ }
+ $("#bbSaveChapterNote")?.addEventListener("click",()=>{
+  try{const notes=JSON.parse(localStorage.getItem("bb_chapter_notes")||"{}");notes[currentKey()]=$("#bbChapterNote").value;localStorage.setItem("bb_chapter_notes",JSON.stringify(notes));$("#bbNoteStatus").textContent=t("saved");toast(t("saved"))}catch(e){toast("Could not save notes. Check device storage.")}
+ });
+ function filterVerses(){
+  const input=$("#bbChapterSearch");if(!input)return;
+  const q=input.value.trim().toLowerCase();let shown=0;
+  $("#readingArea")?.querySelectorAll(".bible-verse").forEach(v=>{const match=!q||v.textContent.toLowerCase().includes(q);v.classList.toggle("bb-search-hidden",!match);if(match)shown++});
+  const msg=$("#bbNoSearchResults");if(msg){msg.hidden=!q||shown>0;msg.textContent=t("noMatch")}
+ }
+ $("#bbChapterSearch")?.addEventListener("input",filterVerses);
+ $("#bookSelect")?.addEventListener("change",()=>{setTimeout(()=>{loadNote();filterVerses()},250)});
+ $("#chapterSelect")?.addEventListener("change",()=>{setTimeout(()=>{loadNote();filterVerses()},250)});
+ $("#languageSelect")?.addEventListener("change",()=>setTimeout(refreshLabels,0));
+ $("#bibleLanguageSelect")?.addEventListener("change",()=>setTimeout(()=>{loadNote();filterVerses()},500));
+ refreshLabels();
+})();
