@@ -1,0 +1,18 @@
+
+{
+  "name": "Bible Buddy 2.0",
+  "short_name": "Bible Buddy",
+  "description": "Your complete Bible study companion",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#101a16",
+  "theme_color": "#101a16",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
