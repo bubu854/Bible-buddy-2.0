@@ -87,7 +87,7 @@ function updateAnim(){if($("#bbAnimWords"))$("#bbAnimWords").textContent=$("#bbA
 ["bbAnimText","bbAnimRef"].forEach(id=>$("#"+id)?.addEventListener("input",updateAnim));$("#bbAnimSave")?.addEventListener("click",drawAnimationStill);updateAnim();
 
 /* Original, gentle ambient worship bed using Web Audio oscillators. */
-let bbWorshipAudio=null,bbWorshipNodes=[],bbWorshipTimer=null,bbWorshipStep=0;
+let bbWorshipAudio=null,bbWorshipMaster=null,bbWorshipNodes=[],bbWorshipTimer=null,bbWorshipStep=0;
 const bbWorshipChords={
  peace:[[261.63,329.63,392.00,493.88],[220.00,261.63,329.63,392.00],[174.61,220.00,261.63,329.63],[196.00,246.94,293.66,392.00]],
  prayer:[[220.00,261.63,329.63,392.00],[196.00,246.94,293.66,349.23],[174.61,220.00,261.63,329.63],[196.00,220.00,293.66,392.00]],
@@ -101,27 +101,27 @@ function bbWorshipChord(){
   const osc=ctx.createOscillator(),gain=ctx.createGain(),filter=ctx.createBiquadFilter();
   osc.type=i===0?"sine":"triangle";osc.frequency.value=hz*(i===3?2:1);filter.type="lowpass";filter.frequency.value=720;
   gain.gain.setValueAtTime(0.0001,now);gain.gain.linearRampToValueAtTime((i===0?0.055:0.026)*(Number($("#bbWorshipVolume")?.value||35)/35),now+2.8);
-  osc.connect(filter);filter.connect(gain);gain.connect(ctx.destination);osc.start(now);bbWorshipNodes.push(osc,filter,gain);
+  osc.connect(filter);filter.connect(gain);gain.connect(bbWorshipMaster||ctx.destination);osc.start(now);bbWorshipNodes.push(osc,filter,gain);
  });
  bbWorshipStep++;
 }
 function bbWorshipStop(){
  if(bbWorshipTimer){clearInterval(bbWorshipTimer);bbWorshipTimer=null}
  bbWorshipNodes.forEach(n=>{try{n.stop?.()}catch{};try{n.disconnect()}catch{}});bbWorshipNodes=[];
- if(bbWorshipAudio){bbWorshipAudio.close().catch(()=>{});bbWorshipAudio=null}
+ if(bbWorshipAudio){bbWorshipAudio.close().catch(()=>{});bbWorshipAudio=null}bbWorshipMaster=null;
  const status=$("#bbWorshipStatus"),play=$("#bbWorshipPlay");if(status)status.textContent="Music stopped";if(play)play.textContent="▶ Play background music";
 }
 $("#bbWorshipPlay")?.addEventListener("click",async()=>{
  try{
   if(!window.AudioContext&&!window.webkitAudioContext){$("#bbWorshipStatus").textContent="Audio playback is not supported in this browser.";return}
-  bbWorshipStop();const AC=window.AudioContext||window.webkitAudioContext;bbWorshipAudio=new AC();await bbWorshipAudio.resume();bbWorshipStep=0;bbWorshipChord();bbWorshipTimer=setInterval(bbWorshipChord,8000);
+  bbWorshipStop();const AC=window.AudioContext||window.webkitAudioContext;bbWorshipAudio=new AC();bbWorshipMaster=bbWorshipAudio.createGain();bbWorshipMaster.gain.value=Number($('#bbWorshipVolume')?.value||35)/100;bbWorshipMaster.connect(bbWorshipAudio.destination);await bbWorshipAudio.resume();bbWorshipStep=0;bbWorshipChord();bbWorshipTimer=setInterval(bbWorshipChord,8000);
   $("#bbWorshipStatus").textContent="♫ Playing gentle instrumental worship";$("#bbWorshipPlay").textContent="♫ Music is playing";
  }catch(e){$("#bbWorshipStatus").textContent="Could not start audio. Please tap Play again."}
 });
 $("#bbWorshipStop")?.addEventListener("click",bbWorshipStop);
 $("#bbWorshipVolume")?.addEventListener("input",e=>{
  const v=Number(e.target.value);$("#bbWorshipVolumeValue").textContent=v+"%";
- if(bbWorshipAudio)bbWorshipAudio.destination.gain?.setTargetAtTime?.(v/100,bbWorshipAudio.currentTime,.08);
+ if(bbWorshipAudio&&bbWorshipMaster)bbWorshipMaster.gain.setTargetAtTime(v/100,bbWorshipAudio.currentTime,.08);
 });
 
 })();
