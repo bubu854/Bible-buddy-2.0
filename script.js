@@ -94,6 +94,36 @@ $$("[data-plan]").forEach(b=>b.onclick=()=>{const p=planContent[b.dataset.plan],
 let recorder=null,chunks=[],startedAt=0,ticker=null;
 $("#recordStart").onclick=async()=>{if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){toast("Recording is not supported in this browser");return}try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});recorder=new MediaRecorder(stream);chunks=[];recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};recorder.onstop=()=>{const blob=new Blob(chunks,{type:recorder.mimeType||"audio/webm"});const url=URL.createObjectURL(blob);const name=($("#languageSelect")?.value!=="English"?"Prædikuupptøka · ":"Sermon recording · ")+new Date().toLocaleString();const row=document.createElement("div");row.className="saved-item";const title=document.createElement("strong");title.textContent=name;const audio=document.createElement("audio");audio.controls=true;audio.src=url;row.append(title,audio);$("#recordingsList").prepend(row);stream.getTracks().forEach(t=>t.stop());$("#recordStatus").textContent="Recording saved for this session"};recorder.start();startedAt=Date.now();$("#recordStatus").textContent="Recording…";$("#recordOrb").classList.add("recording");$("#recordStart").disabled=true;$("#recordStop").disabled=false;ticker=setInterval(()=>{const n=Math.floor((Date.now()-startedAt)/1000);$("#recordTimer").textContent=String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0")},500)}catch(e){toast("Microphone permission was not granted")}};
 $("#recordStop").onclick=()=>{if(recorder?.state==="recording"){recorder.stop();clearInterval(ticker);$("#recordOrb").classList.remove("recording");$("#recordStart").disabled=false;$("#recordStop").disabled=true;$("#recordStatus").textContent="Finishing recording…"}};
+
+const transcriptionEndpoint="https://bible-buddy-transcriber.boaslukama2.workers.dev/";
+$("#transcribeAudio").onclick=async()=>{
+ const file=$("#sermonAudio")?.files?.[0],status=$("#transcriptionStatus");
+ if(!file){status.textContent="Choose an audio file first.";return}
+ if(file.size>25*1024*1024){status.textContent="This file is too large. Choose a file under 25 MB.";return}
+ const ext=(file.name.split(".").pop()||"").toLowerCase();
+ if(!["mp3","wav","ogg","flac"].includes(ext)){status.textContent="Please choose an MP3, WAV, OGG or FLAC file.";return}
+ const language=$("#languageSelect")?.value!=="English"?"fo":"en";
+ const form=new FormData();form.append("file",file,file.name);form.append("language",language);
+ const button=$("#transcribeAudio");button.disabled=true;status.textContent=language==="fo"?"Tekur upp og ger tekst…":"Transcribing audio…";
+ try{
+  const response=await fetch(transcriptionEndpoint,{method:"POST",body:form});
+  const raw=await response.text();let data;try{data=JSON.parse(raw)}catch{data={message:raw}}
+  if(!response.ok)throw new Error(data?.error?.message||data?.message||data?.error||("Transcription failed ("+response.status+")"));
+  const transcript=data.transcription||data.transcript||data.text||data.result?.transcription||data.result?.text;
+  if(!transcript)throw new Error("The service returned a response, but no transcript text was found. "+raw.slice(0,300));
+  $("#sermonTranscript").value=transcript;
+  status.textContent=language==="fo"?"Upptøkan er skrivað niður.":"Transcription complete.";
+ }catch(error){status.textContent="Could not transcribe: "+error.message;console.error("Transcription:",error)}
+ finally{button.disabled=false}
+};
+$("#breakdownTranscript").onclick=()=>{
+ const transcript=$("#sermonTranscript")?.value.trim();if(!transcript){toast("Add or transcribe a recording first");return}
+ const fo=$("#languageSelect")?.value!=="English";
+ const prompt=fo
+ ? "Greið frá og brót henda upptikna boðskapin niður á føroyskum. Gev eitt stutt yvirlit, høvuðspunkt, allar Bíbliu-tilvísingar sum verða nevndar, greið frá týdninginum, møguligum misskiljingum og praktiskari nýtslu. Finn ikki uppá vers ella sitat. Um nakað er ógreitt í upptøkuni, sig tað. Her er avritið:\n\n"+transcript
+ : "Break down this recorded message in clear English. Give a short summary, main points, every Bible reference mentioned, explain the meaning, note possible misunderstandings, and suggest practical application. Do not invent Bible verses or quotations. If something in the transcript is unclear, say so. Here is the transcript:\n\n"+transcript;
+ page("buddy");sendBuddy(prompt);
+};
 $("#languageSelect").value=store.get("language","English");$("#languageSelect").onchange=e=>{store.set("language",e.target.value);toast("Language preference saved")};
 $("#darkToggle").checked=store.get("dark",true);$("#darkToggle").onchange=e=>{store.set("dark",e.target.checked);document.body.classList.toggle("light-mode",!e.target.checked)};
 if(!store.get("dark",true))document.body.classList.add("light-mode");
