@@ -24,3 +24,13 @@
 @keyframes buddyTalk{to{transform:scaleY(1.7)}}
 @keyframes buddyTwinkle{50%{opacity:.35;transform:scale(.8) rotate(25deg)}}
 @media(max-width:390px){.buddy-character-card{gap:8px;padding:12px}.buddy-character{flex-basis:112px;height:140px}.buddy-character svg{width:116px;height:140px}.buddy-character-copy strong{font-size:15px}}
+
+/* Buddy customisation */
+.buddy-customise{margin-top:18px;padding-top:15px;border-top:1px solid var(--line);display:grid;gap:9px}
+.buddy-customise h3{margin:0 0 3px}
+.buddy-customise label{font-size:9px;letter-spacing:1px;color:var(--gold2);font-weight:700;margin-top:5px}
+.buddy-customise select{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#080f1c;color:var(--text);font:inherit}
+.buddy-customise .small-note{margin:0}
+#buddyCharacter[data-avatar="blue"] svg{filter:hue-rotate(12deg) saturate(.8) drop-shadow(0 8px 10px #0006)}
+#buddyCharacter[data-avatar="gold"] svg{filter:sepia(.55) saturate(1.25) hue-rotate(350deg) drop-shadow(0 8px 10px #0006)}
+#buddyCharacter[data-avatar="robot"] svg{filter:grayscale(.65) hue-rotate(165deg) saturate(1.5) drop-shadow(0 8px 10px #0006)}
