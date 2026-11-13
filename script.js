@@ -17,10 +17,29 @@ document.addEventListener("change",e=>{if(e.target.matches("[data-prayer]")){con
 document.addEventListener("click",e=>{if(e.target.matches("[data-delete-prayer]")){const a=store.get("prayers");a.splice(+e.target.dataset.deletePrayer,1);store.set("prayers",a);renderPrayer()}});
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 const prompts={ "Explain John 3:16":"John 3:16 is a well-known summary of God's love: it says God gave his Son so that people who believe may have eternal life. Read the whole passage around the verse to understand its context.", "Who was Moses?":"Moses was a leader chosen by God to lead the Israelites out of slavery in Egypt. His story is told mainly in Exodus, Leviticus, Numbers and Deuteronomy.", "Help me pray":"You could begin simply: “God, thank you for being with me. Please guide me today, help me understand your Word, and show me how to love others. Amen.”" };
+let buddyLastSpeech="";
+function speakBuddy(text){
+ if(!text)return;
+ if(!("speechSynthesis" in window)){toast("Speech is not supported in this browser");return}
+ window.speechSynthesis.cancel();
+ const fo=$("#languageSelect")?.value!=="English";
+ const utterance=new SpeechSynthesisUtterance(text);
+ const voices=window.speechSynthesis.getVoices();
+ const preferred=fo?(voices.find(v=>/^fo(-|$)/i.test(v.lang))||voices.find(v=>/^da(-|$)/i.test(v.lang))):voices.find(v=>/^en(-|$)/i.test(v.lang));
+ utterance.lang=fo?"fo-FO":"en-US";if(preferred){utterance.voice=preferred;utterance.lang=preferred.lang}
+ utterance.rate=0.92;utterance.pitch=1.02;
+ const character=$("#buddyCharacter"),status=$("#buddyVoiceStatus");
+ utterance.onstart=()=>{character?.classList.add("speaking");if(status)status.textContent=fo?"Buddy tosar nú…":"Buddy is speaking…"};
+ utterance.onend=()=>{character?.classList.remove("speaking");if(status)status.textContent=fo?"Trýst á knøttin fyri at hoyra Buddy aftur.":"Tap the button to hear Buddy again."};
+ utterance.onerror=()=>{character?.classList.remove("speaking");if(status)status.textContent=fo?"Røddin er ikki tøk á hesum telefonini.":"Voice is not available on this device."};
+ window.speechSynthesis.speak(utterance);
+}
+$("#buddyVoiceToggle")?.addEventListener("click",()=>speakBuddy(buddyLastSpeech||$("#chatMessages .buddy-message:last-child")?.textContent||"Hi, I am Buddy!"));
+$("#buddyVoiceStop")?.addEventListener("click",()=>{if("speechSynthesis"in window)window.speechSynthesis.cancel();$("#buddyCharacter")?.classList.remove("speaking");const status=$("#buddyVoiceStatus");if(status)status.textContent=$("#languageSelect")?.value!=="English"?"Røddin er steðgað.":"Voice stopped."});
 function sendBuddy(t){
  if(!t.trim())return;
  const box=$("#chatMessages"),fo=$("#languageSelect")?.value!=="English";
- box.insertAdjacentHTML("beforeend",'<div class="chat-bubble user-message">'+esc(t)+'</div>');
+ box.insertAdjacentHTML("beforeend",'<div class="chat-bubble user-message">'+esc(t)+'</div>');buddyLastSpeech=answer;speakBuddy(answer);
  const en={
  "Explain John 3:16":"John 3:16 teaches that God's love is for the whole world. He gave his Son, Jesus, so everyone who trusts in him can receive eternal life. The verse invites us to trust Jesus. Read John 3:14–21 for the full context.",
  "Who was Moses?":"Moses was chosen by God to lead the Israelites out of slavery in Egypt. God spoke to Moses, gave him the Law, and guided the people toward the Promised Land. Read Exodus 1–20 to explore his story.",
