@@ -21,6 +21,6 @@
 .buddy-character.speaking svg{animation:buddyBob .55s ease-in-out infinite alternate}
 .buddy-character.speaking .buddy-mouth{animation:buddyTalk .22s ease-in-out infinite alternate;transform-origin:90px 127px}
 @keyframes buddyBob{to{transform:translateY(-4px)}}
-@keyframes buddyTalk{to{d:path("M78 122 Q90 145 103 122")}}
+@keyframes buddyTalk{to{transform:scaleY(1.7)}}
 @keyframes buddyTwinkle{50%{opacity:.35;transform:scale(.8) rotate(25deg)}}
 @media(max-width:390px){.buddy-character-card{gap:8px;padding:12px}.buddy-character{flex-basis:112px;height:140px}.buddy-character svg{width:116px;height:140px}.buddy-character-copy strong{font-size:15px}}
