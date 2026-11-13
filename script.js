@@ -36,25 +36,33 @@ function speakBuddy(text){
 }
 $("#buddyVoiceToggle")?.addEventListener("click",()=>speakBuddy(buddyLastSpeech||$("#chatMessages .buddy-message:last-child")?.textContent||"Hi, I am Buddy!"));
 $("#buddyVoiceStop")?.addEventListener("click",()=>{if("speechSynthesis"in window)window.speechSynthesis.cancel();$("#buddyCharacter")?.classList.remove("speaking");const status=$("#buddyVoiceStatus");if(status)status.textContent=$("#languageSelect")?.value!=="English"?"Røddin er steðgað.":"Voice stopped."});
-function sendBuddy(t){
- if(!t.trim())return;
+let buddyRequestTimes=[];
+async function sendBuddy(t){
+ t=String(t||"").trim();if(!t)return;
  const box=$("#chatMessages"),fo=$("#languageSelect")?.value!=="English";
  box.insertAdjacentHTML("beforeend",'<div class="chat-bubble user-message">'+esc(t)+'</div>');
- const en={
- "Explain John 3:16":"John 3:16 teaches that God's love is for the whole world. He gave his Son, Jesus, so everyone who trusts in him can receive eternal life. The verse invites us to trust Jesus. Read John 3:14–21 for the full context.",
- "Who was Moses?":"Moses was chosen by God to lead the Israelites out of slavery in Egypt. God spoke to Moses, gave him the Law, and guided the people toward the Promised Land. Read Exodus 1–20 to explore his story.",
- "Help me pray":"God, thank you for loving me. Help me understand your Word, trust you today, and show your love to others. Guide my thoughts and actions. In Jesus' name, amen."
- };
- const foAnswers={
- "Greið frá Jóhannes 3:16":"Jóhannes 3:16 vísir okkum, at Guds kærleiki er til allan heimin.","Explain John 3:16":"Jóhannes 3:16 vísir okkum, at Guds kærleiki er til allan heimin. Hann gav son sín, Jesus, so at hvør tann, ið trýr á hann, kann fáa ævigt lív. Versið bjóðar okkum at seta okkara álit á Jesus. Les Jóhannes 3:14–21 fyri at skilja samanhangin.",
- "Hvør var Móses?":"Móses varð útvaldur av Gudi til at leiða ísraelsfólk úr trældóminum í Egyptalandi. Gud talaði við Móses, gav honum lógina og leiðbeindi fólkinum móti fyrijáttaða landinum. Les 2. Mósebók 1–20 fyri at læra meira um søgu hansara.","Who was Moses?":"Móses varð útvaldur av Gudi til at leiða ísraelsfólk úr trældóminum í Egyptalandi. Gud talaði við Móses, gav honum lógina og leiðbeindi fólkinum móti fyrijáttaða landinum. Les 2. Mósebók 1–20 fyri at læra meira um søgu hansara.",
- "Hjálp mær at biðja":"Gud, takk fyri at tú elskar meg. Hjálp mær at skilja títt orð, líta á teg í dag og vísa øðrum tín kærleika. Leið mínum tonkum og gerðum. Í Jesu navni, amen.","Help me pray":"Gud, takk fyri at tú elskar meg. Hjálp mær at skilja títt orð, líta á teg í dag og vísa øðrum tín kærleika. Leið mínum tonkum og gerðum. Í Jesu navni, amen."
- };
- const fallbackEN="I can help you study this passage. Read the verses around it, notice what they show about God and people, and think about how you can live out its message. Live AI is not connected yet, so I cannot generate a fresh answer to every question.";
- const fallbackFO="Eg kann hjálpa tær at granska henda tekstin. Les versini rundanum, legg til merkis, hvat tey vísa um Gud og menniskju, og hugsa um, hvussu tú kanst liva eftir boðskapinum. Livandi AI er ikki sett upp enn, so eg kann ikki gera eitt nýtt svar til allar spurningar.";
- const answer=fo?(foAnswers[t]||fallbackFO):(en[t]||fallbackEN);
- box.insertAdjacentHTML("beforeend",'<div class="chat-bubble buddy-message">'+esc(answer)+'</div>');
- buddyLastSpeech=answer;speakBuddy(answer); $("#chatInput").value="";box.scrollTop=box.scrollHeight;
+ const typing=document.createElement("div");typing.className="chat-bubble buddy-message";typing.textContent=fo?"Buddy svarar…":"Buddy is thinking…";box.append(typing);box.scrollTop=box.scrollHeight;
+ const now=Date.now();buddyRequestTimes=buddyRequestTimes.filter(x=>now-x<60000);
+ if(buddyRequestTimes.length>=2){typing.textContent=fo?"Ókeypis AI-tænastan loyvir bert tveimum spurningum um minuttin. Bíða eitt sindur og royn aftur.":"The free AI service allows only two questions per minute. Please wait a little and try again.";return}
+ buddyRequestTimes.push(now);
+ const system=fo
+ ? "Tú eitur Buddy og ert ein blíður, hjálpsamur Bíbliu-lestrarhjálpari. Svara á føroyskum (føroyskt mál). Greið frá Bíbliuversum í greiðum máli, gev samanhang og nevna bók, kapittul og vers, tá tað er viðkomandi. Ver virðiligur móti kristnum trúarspurningum. Um tú ikki veitst nakað, sig tað. Finn ikki uppá beinleiðis Bíbliu-tilvitnanir. Tú ert ikki prestur ella gudfrøðiligur myndugleiki."
+ : "You are Buddy, a kind and helpful Bible study companion. Answer in clear English. Explain Bible passages with context, mention book, chapter and verse when relevant, and be respectful of Christian beliefs and different interpretations. If unsure, say so. Never invent direct Bible quotations. You are not a pastor or theological authority.";
+ const history=[...box.querySelectorAll(".user-message,.buddy-message")].filter(el=>el!==typing).slice(-12).map(el=>({role:el.classList.contains("user-message")?"user":"assistant",content:el.textContent}));
+ try{
+  const response=await fetch("https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify({model:"Qwen3.5-397B-A17B",messages:[{role:"system",content:system},...history],max_tokens:850,temperature:0.5,stream:false}),credentials:"omit"});
+  const data=await response.json();
+  if(!response.ok)throw new Error(data?.error?.message||("AI service returned "+response.status));
+  const answer=data?.choices?.[0]?.message?.content?.trim();
+  if(!answer)throw new Error("The AI returned an empty answer.");
+  typing.textContent=answer;buddyLastSpeech=answer;speakBuddy(answer);
+ }catch(error){
+  typing.textContent=fo
+   ?"Buddy kann ikki fáa samband við ókeypis AI-tænastuna beint nú. Royn aftur seinni. Um trupulleikin heldur fram, kann tænastan vera niðri ella hava brúkt sítt ókeypis mark."
+   :"Buddy couldn't reach the free AI service just now. Please try again later. The service may be temporarily unavailable or its free limit may have been reached.";
+  console.error("Buddy AI connection:",error);
+ }
+ $("#chatInput").value="";box.scrollTop=box.scrollHeight;
 }
 $("#chatForm").addEventListener("submit",e=>{e.preventDefault();sendBuddy($("#chatInput").value)});$$(".prompt-chip").forEach(b=>b.onclick=()=>sendBuddy(b.textContent));
 const quiz=[["Who built the ark?",["Noah","Moses","David"],0],["Who defeated Goliath?",["Saul","David","Solomon"],1],["Where was Jesus born?",["Nazareth","Jerusalem","Bethlehem"],2],["Who was swallowed by a great fish?",["Jonah","Peter","Paul"],0],["What is the first book of the Bible?",["Exodus","Genesis","Psalms"],1]];let qi=0,answered=false,score=0;
