@@ -12,6 +12,7 @@ const groups=[
 ];
 const classify=(title,page)=>{
 const t=title.toLowerCase();
+if(/bible doodle studio|creative studio|art studio/.test(t)||page==="artstudio")return 6;
 if(/read the bible|audio bible|connected verses|bible timeline|bible places|reading plans/.test(t))return 0;
 if(/ask buddy|voice conversation|buddy voice|buddy personality/.test(t))return 1;
 if(/deep bible study|smart study|memorise scripture|sermon recorder|sermon intelligence|my journal/.test(t))return 2;
