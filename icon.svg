@@ -1,0 +1,32 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1">
+      <stop stop-color="#203c2b"/>
+      <stop offset="1" stop-color="#08130e"/>
+    </linearGradient>
+    <linearGradient id="gold" x2="0" y2="1">
+      <stop stop-color="#fff1a8"/>
+      <stop offset="1" stop-color="#c18b32"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop stop-color="#ffe9a0" stop-opacity=".8"/>
+      <stop offset="1" stop-color="#e4b84e" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="110" fill="url(#bg)"/>
+  <circle cx="256" cy="210" r="175" fill="url(#glow)"/>
+  <path d="M256 145 Q170 85 90 130 L90 340 Q175 300 256 365Z" fill="#fff0bb" stroke="#c18b32" stroke-width="9"/>
+  <path d="M256 145 Q342 85 422 130 L422 340 Q337 300 256 365Z" fill="#e8c875" stroke="#c18b32" stroke-width="9"/>
+  <path d="M256 145V365" stroke="#9c702d" stroke-width="8"/>
+  <g fill="none" stroke="#a67a36" stroke-width="5" opacity=".8">
+    <path d="M120 175 Q180 145 225 190"/>
+    <path d="M120 220 Q180 190 225 235"/>
+    <path d="M120 265 Q180 235 225 280"/>
+    <path d="M392 175 Q332 145 287 190"/>
+    <path d="M392 220 Q332 190 287 235"/>
+    <path d="M392 265 Q332 235 287 280"/>
+  </g>
+  <path d="M256 55V95 M185 75L205 110 M327 75L307 110" stroke="#ffe9a0" stroke-width="8" stroke-linecap="round"/>
+  <text x="256" y="430" text-anchor="middle" fill="url(#gold)" font-size="35" font-weight="bold" font-family="Georgia">BIBLE BUDDY</text>
+</svg>
