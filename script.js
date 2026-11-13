@@ -22,8 +22,10 @@ function speakBuddy(text){
  if(!text)return;
  if(!("speechSynthesis" in window)){toast("Speech is not supported in this browser");return}
  window.speechSynthesis.cancel();
+ try{window.speechSynthesis.resume()}catch(e){}
  const fo=$("#languageSelect")?.value!=="English";
- const utterance=new SpeechSynthesisUtterance(text);
+ const utterance=new SpeechSynthesisUtterance(String(text));
+ utterance.onstart=()=>{const character=$("#buddyCharacter"),status=$("#buddyVoiceStatus");character?.classList.add("speaking");if(status)status.textContent=fo?"Buddy tosar nú…":"Buddy is speaking…"};
  const voices=window.speechSynthesis.getVoices();
  const selectedVoice=store.get("buddy_voice","");
  const selected=voices.find(v=>v.voiceURI===selectedVoice);
@@ -32,7 +34,6 @@ function speakBuddy(text){
  utterance.lang=fo?"fo-FO":"en-US";if(preferred){utterance.voice=preferred;utterance.lang=preferred.lang}
  utterance.rate=0.92;utterance.pitch=1.02;
  const character=$("#buddyCharacter"),status=$("#buddyVoiceStatus");
- utterance.onstart=()=>{character?.classList.add("speaking");if(status)status.textContent=fo?"Buddy tosar nú…":"Buddy is speaking…"};
  utterance.onend=()=>{character?.classList.remove("speaking");if(status)status.textContent=fo?"Trýst á knøttin fyri at hoyra Buddy aftur.":"Tap the button to hear Buddy again."};
  utterance.onerror=()=>{character?.classList.remove("speaking");if(status)status.textContent=fo?"Røddin er ikki tøk á hesum telefonini.":"Voice is not available on this device."};
  window.speechSynthesis.speak(utterance);
@@ -82,7 +83,9 @@ async function sendBuddy(t,mode="chat"){
   if(Array.isArray(answer))answer=answer.map(part=>typeof part==="string"?part:(part?.text||"")).join("");
   answer=typeof answer==="string"?answer.trim():"";
   if(!answer)throw new Error(data?.error?.message||("The AI returned no visible answer (finish reason: "+(data?.choices?.[0]?.finish_reason||"unknown")+"). Try again in a moment."));
-  typing.textContent=answer;buddyLastSpeech=answer;speakBuddy(answer);
+  typing.textContent=answer;buddyLastSpeech=answer;
+  // Automatically read every answer aloud; the Speak button remains available.
+  speakBuddy(answer);
  }catch(error){
   console.error("Buddy AI connection:",error);
   const detail=error?.name==="AbortError"?"The request timed out after 60 seconds.":error?.message||"Network request failed.";
@@ -389,7 +392,14 @@ page("home");
  let voiceRec=null,voiceActive=false;
  $("#buddyListenButton")?.addEventListener("click",()=>{
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){toast(say("Voice input is not supported by this browser. Use your keyboard microphone.","Røddarinnlesing er ikki stuðlað. Brúka mikrofonina á knappaborðinum."));return}
+  // iPhone Safari does not provide the Web Speech recognition API. Open the
+  // keyboard so the user's built-in iOS Dictation microphone can be used.
+  if(!SR){
+   const input=$("#chatInput");
+   if(input){input.focus();input.placeholder=say("Tap the microphone on your iPhone keyboard, speak, then tap Send.","Trýst á mikrofonina á knappaborðinum, tosa, og trýst síðani Send.");}
+   toast(say("Use the microphone on your iPhone keyboard. Buddy will speak his reply aloud.","Brúka mikrofonina á iPhone-knappaborðinum. Buddy fer at svara við rødd."));
+   return;
+  }
   if(voiceActive){voiceRec?.stop();voiceActive=false;$("#buddyListenButton").textContent="🎙";return}
   voiceRec=new SR();voiceRec.lang=fo()?"fo-FO":"en-US";voiceRec.interimResults=false;voiceRec.continuous=false;
   voiceRec.onstart=()=>{voiceActive=true;$("#buddyListenButton").textContent="■";$("#chatInput").placeholder=say("Listening…","Lurti…")};
