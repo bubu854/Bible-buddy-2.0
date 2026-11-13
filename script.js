@@ -35,86 +35,28 @@ $("#exportData").onclick=()=>{const data={journal:store.get("journal"),prayers:s
 if("serviceWorker"in navigator&&location.protocol==="https:")window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(console.error));
 page("home");
 
-/* Bible Buddy language + Bible reader update */
+
+/* Bible Buddy in-app Bible reader */
 (function(){
- const faroese={
- "GROW IN THE WORD":"VAKS Í GUDS ORÐI","YOUR DAILY TIME WITH GOD":"TÍN DAGLIGA LØTA VIÐ GUDI",
- "Welcome back,":"Vælkomin aftur,","friend.":"vinur.","A little time in the Word can change your whole day.":"Ein løta í Guds orði kann broyta allan tín dag.",
- "VERSE OF THE DAY":"DAGSINS BÍBLJUORÐ","TODAY":"Í DAG","Copy verse":"Avrita vers","Save verse":"Goym vers",
- "YOUR STUDY SPACE":"TÍTT BÍBLIULEGURØKI","What would you like to do?":"Hvat hevur tú hug at gera?",
- "Read the Bible":"Les Bíbliuna","Choose books and chapters":"Vel bøkur og kapitlar","Ask Buddy":"Spyr Buddy","Explore Bible questions":"Kanna spurningar um Bíbliuna",
- "Sermon recorder":"Upptakari til prædikur","Record and keep messages":"Tak upp og goym boðskapir","My journal":"Mín dagbók","Save what you learn":"Goym tað, tú lærir",
- "Prayer list":"Bønarl listi","Keep your prayers close":"Goym tínar bønir","Reading plans":"Lesiætlanir","Build a daily habit":"Skapa ein dagligan vana",
- "Bible quiz":"Bíbliuquiz","Test what you know":"Royn tína vitan","Bible places":"Bíbilsk støð","Explore Bible locations":"Kanna støð í Bíbliuni",
- "SCRIPTURE LIBRARY":"BÍBLIUSAVN","Read the ":"Les ","Word.":"Orðið.","Choose a book and chapter to begin.":"Vel eina bók og ein kapittul at byrja við.",
- "BOOK OF THE BIBLE":"BÓK Í BÍBLIUNI","CHAPTER":"KAPITTUL","Choose a chapter":"Vel ein kapittul",
- "Saved verses":"Goymd vers","YOUR BIBLE STUDY COMPANION":"TÍN BÍBLIULEGUFELAGI","Talk with ":"Tosa við ","Buddy.":"Buddy.",
- "Ask questions, explore meaning and grow in faith.":"Set spurningar, kanna merkingina og vaksa í trúnni.",
- "KEEP THE MESSAGE":"VARÐVEIT BOÐSKAPIN","Sermon ":"Prædiku","recorder.":"upptakari.","Record a sermon, speech or Bible study for later.":"Tak upp eina prædiku, røðu ella bíbliulestur.",
- "Ready to record":"Til reiðar at taka upp","Start recording":"Byrja upptøku","Stop":"Steðga","My recordings":"Mínar upptøkur",
- "REFLECT AND GROW":"HUGLEIÐ OG VAKS","My ":"Mín ","journal.":"dagbók.","Write down what God is teaching you.":"Skriva niður, hvat Gud lærir teg.",
- "TITLE":"HEITI","YOUR NOTES":"TÍNI NOTAT","Save journal entry":"Goym dagbókarnotat","Past entries":"Fyrru notat",
- "LET YOUR HEART SPEAK":"LAT HJARTAÐ TALA","Prayer ":"Bønar","list.":"listi.","Keep track of what and who you are praying for.":"Hav yvirlit yvir, hvat og hvørjum tú biður fyri.",
- "Add a prayer request…":"Legg eina bønarumbøn afturat…","Add":"Legg afturat","My prayers":"Mínar bønir",
- "A LITTLE EVERY DAY":"LÍTIÐ HVØNN DAG","Reading ":"Lesi","plans.":"ætlanir.","Choose a path and spend time in Scripture.":"Vel eina leið og brúka tíð í Skriftini.",
- "LEARN AS YOU GO":"LÆR Á LEIÐINI","A few questions to test your Bible knowledge.":"Nakrir spurningar at royna tína bíbliuvitan.",
- "EXPLORE THE BIBLE WORLD":"KANN BÍBLIULANDIÐ","places.":"støð.","Discover places connected to the stories of Scripture.":"Uppdaga støð, sum hoyra til frásagnirnar í Skriftini.",
- "MAKE IT YOURS":"GER TAÐ TIL TÍTT","App ":"App","settings.":"stillingar.","APP LANGUAGE":"APP-MÁL","Dark appearance":"Døkk útsjónd",
- "Black, navy blue and gold theme":"Svart, myrkablátt og gull","Your saved data":"Tíni goymdu dáta","Export my notes":"Útflyta míni notat",
- "Home":"Heim","Bible":"Bíblia","Buddy":"Buddy","Record":"Upptøka","Settings":"Stillingar",
- "No saved verses yet.":"Eingi vers eru goymd enn.","No journal entries yet.":"Eingi dagbókarnotat enn.",
- "No prayer requests yet.":"Eingir bønarumbønir enn.","Open the official Faroese Bible ↗":"Lat upp Føroysku Bíbliuna ↗"
- };
- function translate(){
-   if(!document.querySelector("#languageSelect"))return;
-   const isFo=localStorage.getItem("bb_language")==="Faroese (Føroyskt)";
-   document.documentElement.lang=isFo?"fo":"en";
-   if(!isFo)return;
-   const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
-   const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
-   nodes.forEach(n=>{const key=n.nodeValue.trim();if(faroese[key])n.nodeValue=n.nodeValue.replace(key,faroese[key])});
-   const book=document.querySelector("#bookSelect"),chapter=document.querySelector("#chapterSelect"),area=document.querySelector("#readingArea");
- const bibleLang=document.querySelector("#bibleLanguageSelect"),highlightBtn=document.querySelector("#highlightMode");
+ const language=document.querySelector("#bibleLanguageSelect"),book=document.querySelector("#bookSelect"),chapter=document.querySelector("#chapterSelect"),area=document.querySelector("#readingArea"),highBtn=document.querySelector("#highlightMode");
+ if(!language||!book||!chapter||!area)return;
  let highlightMode=false;
- const highlightStore=()=>{try{return JSON.parse(localStorage.getItem("bb_highlights")||"[]")}catch{return []}};
- const saveHighlights=a=>localStorage.setItem("bb_highlights",JSON.stringify(a));
- function paintHighlightList(){
-   const el=document.querySelector("#highlightedVerses");if(!el)return;
-   const items=highlightStore();
-   el.innerHTML=items.length?items.map(x=>"<div class='saved-item'><strong>"+x.ref+"</strong><p>"+x.text+"</p><button class='delete-btn' data-unhighlight='"+encodeURIComponent(x.key)+"'>Remove highlight</button></div>").join(""):"No highlighted verses yet.";
+ const readHighlights=()=>{try{return JSON.parse(localStorage.getItem("bb_highlights")||"[]")}catch(e){return []}};
+ const writeHighlights=a=>localStorage.setItem("bb_highlights",JSON.stringify(a));
+ const escText=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+ function renderHighlights(){const el=document.querySelector("#highlightedVerses");if(!el)return;const items=readHighlights();el.innerHTML=items.length?items.map(x=>"<div class='saved-item'><strong>"+escText(x.ref)+"</strong><p>"+escText(x.text)+"</p><button class='delete-btn' data-unhighlight='"+encodeURIComponent(x.key)+"'>Remove highlight</button></div>").join(""):"No highlighted verses yet."}
+ function showFaroese(){area.innerHTML="<h2>Føroyska Bíblian</h2><p class='muted'>Les føroysku Bíbliuna her inni í Bible Buddy.</p><div class='faroese-reader-frame'><iframe title='Føroyska Bíblian' src='https://www.skriftin.fo/' loading='lazy' referrerpolicy='strict-origin-when-cross-origin' allow='fullscreen'></iframe></div><p class='small-note'>Um síðan ikki vísir inni í appini, kanst tú lata hana upp her:</p><a class='primary-btn bible-external-link' href='https://www.skriftin.fo/' target='_blank' rel='noopener'>Lat Skriftin.fo upp ↗</a><a class='secondary-btn bible-external-link' href='https://biblia.fo/browse' target='_blank' rel='noopener'>Føroyska Bíbliufelagið ↗</a>"}
+ async function loadChapter(){
+  if(language.value==="fo"){showFaroese();renderHighlights();return}
+  const name=book.value,c=chapter.value;area.innerHTML="<p class='muted'>Loading English Bible chapter…</p>";
+  try{const response=await fetch("https://bible-api.com/"+encodeURIComponent(name.toLowerCase()+" "+c)+"?translation=web");if(!response.ok)throw new Error("Bible source unavailable");const data=await response.json(),verses=Array.isArray(data.verses)?data.verses:[];if(!verses.length)throw new Error("No verses returned");const saved=readHighlights();
+   area.innerHTML="<h2>"+escText(data.reference)+" · World English Bible</h2>"+verses.map(v=>{const key=name+"|"+c+"|"+v.verse,marked=saved.some(x=>x.key===key);return "<p class='bible-verse "+(marked?"verse-highlight":"")+"' data-verse='"+v.verse+"' data-key='"+encodeURIComponent(key)+"'><sup>"+v.verse+"</sup> "+escText(v.text)+"</p>"}).join("")+"<button type='button' class='secondary-btn' id='copyChapter'>Copy chapter</button><p class='small-note'>Turn on Highlighter, then tap a verse to save its highlight.</p>";
+   area.querySelectorAll(".bible-verse").forEach(p=>p.addEventListener("click",()=>{if(!highlightMode){toast("Turn on Highlighter to mark a verse");return}const key=decodeURIComponent(p.dataset.key),items=readHighlights(),idx=items.findIndex(x=>x.key===key);if(idx>=0){items.splice(idx,1);p.classList.remove("verse-highlight")}else{items.unshift({key,ref:name+" "+c+":"+p.dataset.verse,text:p.textContent.trim()});p.classList.add("verse-highlight")}writeHighlights(items);renderHighlights()}));
+   document.querySelector("#copyChapter").onclick=()=>navigator.clipboard?.writeText(data.reference+"\n"+verses.map(v=>v.verse+". "+v.text).join("\n")).then(()=>toast("Chapter copied")).catch(()=>toast("Copy unavailable"));renderHighlights();
+  }catch(e){area.innerHTML="<h2>"+escText(name)+" "+c+"</h2><p>Could not load the English Bible chapter. Check your internet connection and try again.</p>"}
  }
- function addFaroesePanel(){
-   area.innerHTML="<h2>Føroyska Bíblian</h2><p>Les alla føroysku Bíbliuna hjá Føroyska Bíbliufelagnum.</p><a class='primary-btn bible-external-link' href='https://www.skriftin.fo/' target='_blank' rel='noopener'>Les føroysku Bíbliuna ↗</a><a class='secondary-btn bible-external-link' href='https://biblia.fo/browse' target='_blank' rel='noopener'>Bíbliufelagið – les Bíbliuna ↗</a><p class='small-note'>Skriftin.fo hevur føroyska Bíbliu, leiting og frámerkingar. Føroyski teksturin verður lisin á teirra egnu síðu.</p>";
- }
- async function loadBibleChapter(){
-   if(!book||!chapter||!area)return;
-   if(bibleLang&&bibleLang.value==="fo"){addFaroesePanel();paintHighlightList();return}
-   const name=book.value,c=chapter.value;
-   area.innerHTML="<p>Loading English Bible chapter…</p>";
-   try{
-     const response=await fetch("https://bible-api.com/"+encodeURIComponent(name.toLowerCase()+" "+c)+"?translation=web");
-     if(!response.ok)throw new Error("Bible source unavailable");
-     const data=await response.json(),verses=Array.isArray(data.verses)?data.verses:[];
-     if(!verses.length)throw new Error("No verses returned");
-     const highlights=highlightStore();
-     area.innerHTML="<h2>"+data.reference+" · World English Bible</h2>"+verses.map(v=>{
-       const key=name+"|"+c+"|"+v.verse,found=highlights.some(x=>x.key===key);
-       return "<p class='bible-verse "+(found?"verse-highlight":"")+"' data-verse='"+v.verse+"' data-key='"+encodeURIComponent(key)+"'><sup>"+v.verse+"</sup> "+String(v.text).replace(/[&<>]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[ch]))+"</p>";
-     }).join("")+"<button type='button' class='secondary-btn' id='copyChapter'>Copy chapter</button><p class='small-note'>Tap Highlighter, then tap any verse to save or remove its highlight.</p>";
-     area.querySelectorAll(".bible-verse").forEach(p=>p.addEventListener("click",()=>{
-       if(!highlightMode){toast("Turn on Highlighter to mark a verse");return}
-       const key=decodeURIComponent(p.dataset.key),a=highlightStore(),idx=a.findIndex(x=>x.key===key);
-       if(idx>=0){a.splice(idx,1);p.classList.remove("verse-highlight")}else{const text=p.textContent.trim();a.unshift({key,ref:name+" "+c+":"+p.dataset.verse,text});p.classList.add("verse-highlight")}
-       saveHighlights(a);paintHighlightList();
-     }));
-     const copy=document.querySelector("#copyChapter");
-     if(copy)copy.onclick=()=>navigator.clipboard?.writeText(data.reference+"\n"+verses.map(v=>v.verse+". "+v.text).join("\n")).then(()=>toast("Chapter copied")).catch(()=>toast("Copy unavailable"));
-     paintHighlightList();
-   }catch(err){area.innerHTML="<h2>"+name+" "+c+"</h2><p>Could not load the English Bible chapter. Check your internet connection and try again.</p>";}
- }
- if(bibleLang){bibleLang.value="en";bibleLang.addEventListener("change",loadBibleChapter)}
- if(book&&chapter){book.addEventListener("change",loadBibleChapter);chapter.addEventListener("change",loadBibleChapter);setTimeout(loadBibleChapter,0)}
- if(highlightBtn)highlightBtn.addEventListener("click",()=>{highlightMode=!highlightMode;highlightBtn.textContent="Highlighter: "+(highlightMode?"ON":"OFF");highlightBtn.classList.toggle("highlight-active",highlightMode);highlightBtn.setAttribute("aria-pressed",String(highlightMode));toast(highlightMode?"Tap a verse to highlight it":"Highlighter turned off")});
- document.addEventListener("click",e=>{const b=e.target.closest("[data-unhighlight]");if(!b)return;const key=decodeURIComponent(b.dataset.unhighlight);saveHighlights(highlightStore().filter(x=>x.key!==key));paintHighlightList();if(bibleLang?.value==="en")loadBibleChapter()});
- paintHighlightList();
+ language.addEventListener("change",loadChapter);book.addEventListener("change",loadChapter);chapter.addEventListener("change",loadChapter);
+ if(highBtn)highBtn.addEventListener("click",()=>{highlightMode=!highlightMode;highBtn.textContent="Highlighter: "+(highlightMode?"ON":"OFF");highBtn.classList.toggle("highlight-active",highlightMode);highBtn.setAttribute("aria-pressed",String(highlightMode));toast(highlightMode?"Tap a verse to highlight it":"Highlighter turned off")});
+ document.addEventListener("click",e=>{const b=e.target.closest("[data-unhighlight]");if(!b)return;const key=decodeURIComponent(b.dataset.unhighlight);writeHighlights(readHighlights().filter(x=>x.key!==key));renderHighlights();if(language.value==="en")loadChapter()});
+ language.value="en";loadChapter();renderHighlights();
 })();
