@@ -25,6 +25,9 @@ return ({bible:0,buddy:1,recorder:2,journal:2,prayer:4,plans:0,quiz:3,deepstudy:
 };
 const cards=[...grid.querySelectorAll(".feature-card")];
 cards.forEach(card=>{const title=card.querySelector("strong")?.textContent||"",page=card.dataset.page||"";groups[classify(title,page)][3].push(card)});
+// Keep the Verse Wallpaper Maker in Wallpapers by its stable page ID.
+const verseWallpaper=cards.find(card=>card.dataset.page==="wallpaper");
+if(verseWallpaper){groups.forEach(group=>{group[3]=group[3].filter(card=>card!==verseWallpaper)});groups[5][3].push(verseWallpaper);}
 const wrap=document.createElement("div");wrap.className="category-list";
 groups.forEach(([num,name,desc,items])=>{const section=document.createElement("section");section.className="feature-category";const head=document.createElement("div");head.className="category-heading";head.innerHTML='<span>'+num+'</span><div><h3>'+name+'</h3><p>'+desc+'</p></div>';const cardsGrid=document.createElement("div");cardsGrid.className="feature-grid";items.forEach(card=>cardsGrid.append(card));section.append(head,cardsGrid);wrap.append(section)});
 grid.replaceWith(wrap);
