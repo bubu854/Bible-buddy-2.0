@@ -25,7 +25,8 @@ function speakBuddy(text){
  const fo=$("#languageSelect")?.value!=="English";
  const utterance=new SpeechSynthesisUtterance(text);
  const voices=window.speechSynthesis.getVoices();
- const preferred=fo?(voices.find(v=>/^fo(-|$)/i.test(v.lang))||voices.find(v=>/^da(-|$)/i.test(v.lang))):voices.find(v=>/^en(-|$)/i.test(v.lang));
+ const selectedVoice=store.get("buddy_voice","");
+ const preferred=voices.find(v=>v.voiceURI===selectedVoice)||(fo?(voices.find(v=>/^fo(-|$)/i.test(v.lang))||voices.find(v=>/^da(-|$)/i.test(v.lang))):voices.find(v=>/^en(-|$)/i.test(v.lang)));
  utterance.lang=fo?"fo-FO":"en-US";if(preferred){utterance.voice=preferred;utterance.lang=preferred.lang}
  utterance.rate=0.92;utterance.pitch=1.02;
  const character=$("#buddyCharacter"),status=$("#buddyVoiceStatus");
@@ -34,6 +35,23 @@ function speakBuddy(text){
  utterance.onerror=()=>{character?.classList.remove("speaking");if(status)status.textContent=fo?"Røddin er ikki tøk á hesum telefonini.":"Voice is not available on this device."};
  window.speechSynthesis.speak(utterance);
 }
+function loadBuddyVoices(){
+ const select=$("#buddyVoiceSelect");if(!select||!("speechSynthesis"in window))return;
+ const saved=store.get("buddy_voice","");
+ const voices=window.speechSynthesis.getVoices();
+ select.innerHTML='<option value="">Default iPhone voice</option>'+voices.map(v=>'<option value="'+esc(v.voiceURI)+'">'+esc(v.name+' ('+v.lang+')')+'</option>').join("");
+ select.value=voices.some(v=>v.voiceURI===saved)?saved:"";
+}
+function applyBuddyAvatar(){
+ const el=$("#buddyCharacter");if(!el)return;
+ el.dataset.avatar=store.get("buddy_avatar","classic");
+ const picker=$("#buddyAvatarSelect");if(picker)picker.value=el.dataset.avatar;
+}
+$("#buddyAvatarSelect")?.addEventListener("change",e=>{store.set("buddy_avatar",e.target.value);applyBuddyAvatar()});
+$("#buddyVoiceSelect")?.addEventListener("change",e=>{store.set("buddy_voice",e.target.value);toast("Buddy voice saved")});
+$("#buddyVoicePreview")?.addEventListener("click",()=>{const old=buddyLastSpeech;buddyLastSpeech=$("#languageSelect")?.value==="English"?"Hello! I'm Buddy.":"Hey! Eg eiti Buddy.";speakBuddy(buddyLastSpeech);buddyLastSpeech=old});
+if("speechSynthesis"in window){loadBuddyVoices();window.speechSynthesis.onvoiceschanged=loadBuddyVoices}
+applyBuddyAvatar();
 $("#buddyVoiceToggle")?.addEventListener("click",()=>speakBuddy(buddyLastSpeech||$("#chatMessages .buddy-message:last-child")?.textContent||"Hi, I am Buddy!"));
 $("#buddyVoiceStop")?.addEventListener("click",()=>{if("speechSynthesis"in window)window.speechSynthesis.cancel();$("#buddyCharacter")?.classList.remove("speaking");const status=$("#buddyVoiceStatus");if(status)status.textContent=$("#languageSelect")?.value!=="English"?"Røddin er steðgað.":"Voice stopped."});
 let buddyRequestTimes=[];
