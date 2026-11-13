@@ -73,34 +73,48 @@ page("home");
    const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
    const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
    nodes.forEach(n=>{const key=n.nodeValue.trim();if(faroese[key])n.nodeValue=n.nodeValue.replace(key,faroese[key])});
-   const book=document.querySelector("#bookSelect");if(book)book.previousElementSibling && (book.previousElementSibling.textContent="BÓK Í BÍBLIUNI");
-   const chapter=document.querySelector("#chapterSelect");if(chapter&&chapter.previousElementSibling)chapter.previousElementSibling.textContent="KAPITTUL";
-   const lang=document.querySelector("#languageSelect");if(lang)lang.setAttribute("aria-label","App-mál");
-   const dark=document.querySelector("#darkToggle");if(dark&&dark.closest(".setting-row")){const small=dark.closest(".setting-row").querySelector("small");if(small)small.textContent="Svart, myrkablátt og gull"}
+   const book=document.querySelector("#bookSelect"),chapter=document.querySelector("#chapterSelect"),area=document.querySelector("#readingArea");
+ const bibleLang=document.querySelector("#bibleLanguageSelect"),highlightBtn=document.querySelector("#highlightMode");
+ let highlightMode=false;
+ const highlightStore=()=>{try{return JSON.parse(localStorage.getItem("bb_highlights")||"[]")}catch{return []}};
+ const saveHighlights=a=>localStorage.setItem("bb_highlights",JSON.stringify(a));
+ function paintHighlightList(){
+   const el=document.querySelector("#highlightedVerses");if(!el)return;
+   const items=highlightStore();
+   el.innerHTML=items.length?items.map(x=>"<div class='saved-item'><strong>"+x.ref+"</strong><p>"+x.text+"</p><button class='delete-btn' data-unhighlight='"+encodeURIComponent(x.key)+"'>Remove highlight</button></div>").join(""):"No highlighted verses yet.";
  }
- const language=document.querySelector("#languageSelect");
- if(language){
-   const saved=localStorage.getItem("bb_language")||"English";
-   language.value=saved;
-   language.addEventListener("change",()=>{localStorage.setItem("bb_language",language.value);location.reload()});
-   translate();
+ function addFaroesePanel(){
+   area.innerHTML="<h2>Føroyska Bíblian</h2><p>Les alla føroysku Bíbliuna hjá Føroyska Bíbliufelagnum.</p><a class='primary-btn bible-external-link' href='https://www.skriftin.fo/' target='_blank' rel='noopener'>Les føroysku Bíbliuna ↗</a><a class='secondary-btn bible-external-link' href='https://biblia.fo/browse' target='_blank' rel='noopener'>Bíbliufelagið – les Bíbliuna ↗</a><p class='small-note'>Skriftin.fo hevur føroyska Bíbliu, leiting og frámerkingar. Føroyski teksturin verður lisin á teirra egnu síðu.</p>";
  }
- const book=document.querySelector("#bookSelect"),chapter=document.querySelector("#chapterSelect"),area=document.querySelector("#readingArea");
  async function loadBibleChapter(){
    if(!book||!chapter||!area)return;
-   const b=book.value.toLowerCase().replace(/ /g,"+"),c=chapter.value;
-   area.innerHTML="<p>Loading chapter…</p>";
+   if(bibleLang&&bibleLang.value==="fo"){addFaroesePanel();paintHighlightList();return}
+   const name=book.value,c=chapter.value;
+   area.innerHTML="<p>Loading English Bible chapter…</p>";
    try{
-     const response=await fetch("https://bible-api.com/"+encodeURIComponent(b+" "+c)+"?translation=web");
+     const response=await fetch("https://bible-api.com/"+encodeURIComponent(name.toLowerCase()+" "+c)+"?translation=web");
      if(!response.ok)throw new Error("Bible source unavailable");
-     const data=await response.json();
-     const verses=Array.isArray(data.verses)?data.verses:[];
+     const data=await response.json(),verses=Array.isArray(data.verses)?data.verses:[];
      if(!verses.length)throw new Error("No verses returned");
-     area.innerHTML="<h2>"+data.reference+"</h2>"+verses.map(v=>"<p class='bible-verse' data-verse='"+v.verse+"'><sup>"+v.verse+"</sup> "+String(v.text).replace(/[&<>]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[ch]))+"</p>").join("")+"<button type='button' class='secondary-btn' id='copyChapter'>Copy chapter</button>";
-     area.querySelectorAll(".bible-verse").forEach(p=>p.addEventListener("click",()=>p.classList.toggle("verse-highlight")));
-     const copy=document.querySelector("#copyChapter");if(copy)copy.onclick=()=>navigator.clipboard?.writeText(data.reference+"\n"+verses.map(v=>v.verse+". "+v.text).join("\n")).then(()=>alert("Chapter copied"));
-     if(localStorage.getItem("bb_language")==="Faroese (Føroyskt)")area.insertAdjacentHTML("beforeend","<p class='small-note'>Fyri føroyskan bíbliutekst, brúka leinkjuna til Føroysku Bíbliuna omanfyri.</p>");
-   }catch(err){area.innerHTML="<h2>"+book.value+" "+c+"</h2><p>Could not load this chapter right now. Please try again, or open the official Faroese Bible above.</p>";}
+     const highlights=highlightStore();
+     area.innerHTML="<h2>"+data.reference+" · World English Bible</h2>"+verses.map(v=>{
+       const key=name+"|"+c+"|"+v.verse,found=highlights.some(x=>x.key===key);
+       return "<p class='bible-verse "+(found?"verse-highlight":"")+"' data-verse='"+v.verse+"' data-key='"+encodeURIComponent(key)+"'><sup>"+v.verse+"</sup> "+String(v.text).replace(/[&<>]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[ch]))+"</p>";
+     }).join("")+"<button type='button' class='secondary-btn' id='copyChapter'>Copy chapter</button><p class='small-note'>Tap Highlighter, then tap any verse to save or remove its highlight.</p>";
+     area.querySelectorAll(".bible-verse").forEach(p=>p.addEventListener("click",()=>{
+       if(!highlightMode){toast("Turn on Highlighter to mark a verse");return}
+       const key=decodeURIComponent(p.dataset.key),a=highlightStore(),idx=a.findIndex(x=>x.key===key);
+       if(idx>=0){a.splice(idx,1);p.classList.remove("verse-highlight")}else{const text=p.textContent.trim();a.unshift({key,ref:name+" "+c+":"+p.dataset.verse,text});p.classList.add("verse-highlight")}
+       saveHighlights(a);paintHighlightList();
+     }));
+     const copy=document.querySelector("#copyChapter");
+     if(copy)copy.onclick=()=>navigator.clipboard?.writeText(data.reference+"\n"+verses.map(v=>v.verse+". "+v.text).join("\n")).then(()=>toast("Chapter copied")).catch(()=>toast("Copy unavailable"));
+     paintHighlightList();
+   }catch(err){area.innerHTML="<h2>"+name+" "+c+"</h2><p>Could not load the English Bible chapter. Check your internet connection and try again.</p>";}
  }
- if(book&&chapter){book.addEventListener("change",()=>setTimeout(loadBibleChapter,0));chapter.addEventListener("change",loadBibleChapter);const old=area.innerHTML;const initial=()=>{if(!area.textContent.includes("Chapter selected"))loadBibleChapter();};setTimeout(initial,0);}
+ if(bibleLang){bibleLang.value="en";bibleLang.addEventListener("change",loadBibleChapter)}
+ if(book&&chapter){book.addEventListener("change",loadBibleChapter);chapter.addEventListener("change",loadBibleChapter);setTimeout(loadBibleChapter,0)}
+ if(highlightBtn)highlightBtn.addEventListener("click",()=>{highlightMode=!highlightMode;highlightBtn.textContent="Highlighter: "+(highlightMode?"ON":"OFF");highlightBtn.classList.toggle("highlight-active",highlightMode);highlightBtn.setAttribute("aria-pressed",String(highlightMode));toast(highlightMode?"Tap a verse to highlight it":"Highlighter turned off")});
+ document.addEventListener("click",e=>{const b=e.target.closest("[data-unhighlight]");if(!b)return;const key=decodeURIComponent(b.dataset.unhighlight);saveHighlights(highlightStore().filter(x=>x.key!==key));paintHighlightList();if(bibleLang?.value==="en")loadBibleChapter()});
+ paintHighlightList();
 })();
