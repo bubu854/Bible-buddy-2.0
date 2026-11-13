@@ -391,13 +391,13 @@ page("home");
 
  // Sermon intelligence: strengthen the existing transcript breakdown without claiming audio-file transcription.
  const breakdown=$("#breakdownTranscript");
- if(breakdown)breakdown.addEventListener("click",()=>{
-  const box=$("#sermonTranscript"),transcript=box?.value.trim();if(!transcript)return;
+ if(breakdown)breakdown.onclick=()=>{
+  const transcript=$("#sermonTranscript")?.value.trim();if(!transcript)return;
   const prompt=fo()
    ?"Greina henda prædikuavskrift á føroyskum. Gev: 1) stutt yvirlit, 2) høvuðspunkt og boðskap, 3) allar nevndar Bíbliu-tilvísingar, 4) frágreiðing av tekstunum í samanhangi, 5) týdningarmiklar niðurstøður, 6) spurningar til bólkakjak, 7) ítøkilig stig at brúka í gerandisdegnum, 8) bønarhugskot. Ger vart við ógreið orð í avskriftini. Uppfinn ikki tilvísingar ella sitat. Her er avskriftin:\n\n"+transcript
    :"Analyze this sermon transcript. Provide: 1) concise summary, 2) main points and central message, 3) every Bible reference mentioned, 4) explanation of the passages in context, 5) key takeaways, 6) discussion questions for a study group, 7) practical next steps, and 8) a short prayer idea. Flag unclear transcript wording. Never invent references or quotations. Transcript:\n\n"+transcript;
   page("buddy");sendBuddy(prompt);
- },{once:true});
+ };
 
  // Study groups are local-first. Share/export creates a portable text copy; no cloud sync is implied.
  function groupData(){try{return JSON.parse(localStorage.getItem("bb_study_groups")||"[]")}catch(e){return []}}
