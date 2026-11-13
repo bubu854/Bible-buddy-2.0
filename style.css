@@ -197,3 +197,6 @@ input::placeholder,textarea::placeholder{color:#7889a2}
 .feature-category .feature-card small{font-size:9px;line-height:1.35}
 .feature-category .feature-icon{font-size:19px}
 @media(min-width:600px){.category-list{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}}
+
+/* Personal photo backgrounds */
+body.bb-photo-background{background:#07101e!important;background-image:linear-gradient(#07101ecc,#07101ecc),var(--bb-photo-bg)!important;background-size:cover!important;background-position:center!important;background-attachment:fixed!important}.bb-photo-controls{display:grid;gap:10px;margin-top:12px}.bb-photo-preview{width:100%;max-height:220px;object-fit:cover;border-radius:14px;border:1px solid #b99b5a66}.bb-photo-check{display:flex;align-items:center;gap:10px;color:var(--text);font-size:13px}.bb-photo-check input{width:auto}
