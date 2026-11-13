@@ -124,4 +124,18 @@ $("#bbWorshipVolume")?.addEventListener("input",e=>{
  if(bbWorshipAudio&&bbWorshipMaster)bbWorshipMaster.gain.setTargetAtTime(v/100,bbWorshipAudio.currentTime,.08);
 });
 
+
+/* Persistent Spotify mini-player: stays mounted while users move around Bible Buddy. */
+const bbSpotifyDock=document.createElement("div");
+bbSpotifyDock.id="bbSpotifyDock";
+bbSpotifyDock.style.cssText="position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:99999;max-width:520px;margin:0 auto;padding:10px;background:#101b2b;border:1px solid #d4b46b;border-radius:14px;box-shadow:0 8px 30px #0009;display:none;color:#fff";
+bbSpotifyDock.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px"><strong style="font-size:13px">♫ Spotify · Bible Buddy</strong><button type="button" id="bbSpotifyDockClose" aria-label="Close Spotify player" style="background:transparent;color:#fff;border:1px solid #9babc0;border-radius:8px;padding:5px 10px">Close</button></div><iframe title="Spotify player stays open while using Bible Buddy" src="https://open.spotify.com/embed/artist/3YCKuqpv9nCsIhJ2v8SMix?utm_source=generator&theme=0" width="100%" height="152" style="border:0;border-radius:10px" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
+document.body.append(bbSpotifyDock);
+const bbSpotifyOpen=document.createElement("button");
+bbSpotifyOpen.type="button";bbSpotifyOpen.id="bbSpotifyDockOpen";bbSpotifyOpen.textContent="♫ Keep Spotify playing while I use Bible Buddy";
+bbSpotifyOpen.className="secondary-btn";bbSpotifyOpen.style.cssText="width:100%;margin:10px 0";
+bbSpotifyOpen.addEventListener("click",()=>{bbSpotifyDock.style.display="block";bbSpotifyOpen.textContent="♫ Spotify player is open below";});
+bbSpotifyDock.querySelector("#bbSpotifyDockClose").addEventListener("click",()=>{bbSpotifyDock.style.display="none";bbSpotifyOpen.textContent="♫ Keep Spotify playing while I use Bible Buddy";});
+const bbSpotifySpot=document.querySelector("#worship-page .bb-embedded-music");
+if(bbSpotifySpot)bbSpotifySpot.append(bbSpotifyOpen);
 })();
