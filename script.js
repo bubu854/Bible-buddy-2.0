@@ -57,6 +57,22 @@ if("speechSynthesis"in window){loadBuddyVoices();window.speechSynthesis.onvoices
 applyBuddyAvatar();
 $("#buddyVoiceToggle")?.addEventListener("click",()=>speakBuddy(buddyLastSpeech||$("#chatMessages .buddy-message:last-child")?.textContent||"Hi, I am Buddy!"));
 $("#buddyVoiceStop")?.addEventListener("click",()=>{if("speechSynthesis"in window)window.speechSynthesis.cancel();$("#buddyCharacter")?.classList.remove("speaking");const status=$("#buddyVoiceStatus");if(status)status.textContent=$("#languageSelect")?.value!=="English"?"Røddin er steðgað.":"Voice stopped."});
+// Safety guard: keep Buddy's replies suitable for a general audience.
+function buddyReplyIsInappropriate(value){
+ const text=String(value||"").toLowerCase();
+ const patterns=[
+  /\b(fuck|fucking|motherfucker|shit|bullshit|bitch|bastard|asshole|dickhead|cunt)\b/i,
+  /\b(explicit sexual|pornographic|sexual instructions|graphic sexual)\b/i,
+  /\bhow to (?:kill|murder|stab|shoot|poison|bomb|make an explosive)\b|\binstructions? (?:to|for) (?:kill|murder|attack|harm)\b|\bbuild (?:a bomb|an explosive)\b/i,
+  /\b(threaten to kill|go kill yourself|you should kill yourself|racial superiority|ethnic cleansing)\b/i
+ ];
+ return patterns.some(pattern=>pattern.test(text));
+}
+function safeBuddyFallback(){
+ return $("#languageSelect")?.value!=="English"
+  ? "Eg vil fegin hjálpa, men eg kann ikki geva óhóskandi, kynsliga eksplisitt, hatursfullt ella skaðiligt innihald. Spyr meg heldur um Bíbliuna, trúgv, bøn ella eitt annað trygt evni."
+  : "I’m here to help, but I can’t provide inappropriate, sexually explicit, hateful, or harmful content. I can still help with Bible questions, faith, prayer, or another safe topic.";
+}
 let buddyBusy=false;
 async function sendBuddy(t,mode="chat"){
  t=String(t||"").trim();if(!t||buddyBusy)return;
@@ -66,8 +82,8 @@ async function sendBuddy(t,mode="chat"){
  buddyBusy=true;
  const form=$("#chatForm"),sendButton=form?.querySelector('button[type="submit"],button:not([type])');if(sendButton)sendButton.disabled=true;
  const system=fo
- ? "Tú eitur Buddy og ert ein blíður, hjálpsamur Bíbliu-lestrarhjálpari. Svara á føroyskum (føroyskt mál). Greið frá Bíbliuversum í greiðum máli, gev samanhang og nevna bók, kapittul og vers, tá tað er viðkomandi. Ver virðiligur móti kristnum trúarspurningum. Um tú ikki veitst nakað, sig tað. Finn ikki uppá beinleiðis Bíbliu-tilvitnanir. Tú ert ikki prestur ella gudfrøðiligur myndugleiki."
- : "You are Buddy, a kind and helpful Bible study companion. Answer in clear English. Explain Bible passages with context, mention book, chapter and verse when relevant, and be respectful of Christian beliefs and different interpretations. If unsure, say so. Never invent direct Bible quotations. You are not a pastor or theological authority.";
+ ? "Tú eitur Buddy og ert ein blíður, hjálpsamur Bíbliu-lestrarhjálpari. Svara á føroyskum (føroyskt mál). Greið frá Bíbliuversum í greiðum máli, gev samanhang og nevna bók, kapittul og vers, tá tað er viðkomandi. Ver virðiligur móti kristnum trúarspurningum. Um tú ikki veitst nakað, sig tað. Finn ikki uppá beinleiðis Bíbliu-tilvitnanir. Tú ert ikki prestur ella gudfrøðiligur myndugleiki. Halt altíð innihaldið hóskandi fyri øll: brúka ikki banniorð, kynsliga eksplisitt innihald, hatursmál, happing, hóttanir, grafiskt harðskaparligt innihald ella vegleiðing til at skaða fólk. Um onkur biður um slíkt, nokta stutt og vinarliga og vend aftur til eitt trygt evni. Tú kanst greiða frá truplum bíbliusøgum á sakligan og ikki-grafiskan hátt."
+ : "You are Buddy, a kind and helpful Bible study companion. Answer in clear English. Explain Bible passages with context, mention book, chapter and verse when relevant, and be respectful of Christian beliefs and different interpretations. If unsure, say so. Never invent direct Bible quotations. You are not a pastor or theological authority. Keep every reply suitable for a general audience: no profanity, sexually explicit content, hate speech, bullying, threats, graphic violence, or instructions for harming anyone. If asked for such content, briefly and kindly refuse and redirect to a safe topic. You may discuss difficult biblical events factually and non-graphically.";
  const modeInstruction=mode==="deep-study"
  ? (fo?" Hetta er ein djúp bíbliugransking: skriva eina væl skipaða, gjøgnumarbeidda greining við yvirskriftum fyri samanhang, tekstbygnað, høvuðstema, vers-fyri-vers frágreiðing har hóskandi, aðrar bíbliu-tilvísingar, tulkingar og praktiska nýtslu. Brúka umleið 500-800 orð, men ver greið/ur. Skil týðiliga millum tekst og tulking. Uppfinn ikki fakta ella sitat.":" This is a DEEP STUDY, not a normal chat reply. Give a thorough, structured study with headings: context and original audience, literary structure, key themes, verse-by-verse explanation where appropriate, connected passages, interpretive views, and practical application. Aim for 500-800 words when the passage supports it. Clearly separate what the text says from interpretation. Never invent facts or quotations.")
  : mode==="sermon" ? (fo?" Greina avskriftina gjølla, men greið og skipað.":" Analyze the transcript thoroughly but keep the breakdown clear and organized.")
@@ -83,6 +99,7 @@ async function sendBuddy(t,mode="chat"){
   if(Array.isArray(answer))answer=answer.map(part=>typeof part==="string"?part:(part?.text||"")).join("");
   answer=typeof answer==="string"?answer.trim():"";
   if(!answer)throw new Error(data?.error?.message||("The AI returned no visible answer (finish reason: "+(data?.choices?.[0]?.finish_reason||"unknown")+"). Try again in a moment."));
+  if(buddyReplyIsInappropriate(answer))answer=safeBuddyFallback();
   typing.textContent=answer;buddyLastSpeech=answer;
   // Automatically read every answer aloud; the Speak button remains available.
   speakBuddy(answer);
