@@ -57,7 +57,7 @@ applyBuddyAvatar();
 $("#buddyVoiceToggle")?.addEventListener("click",()=>speakBuddy(buddyLastSpeech||$("#chatMessages .buddy-message:last-child")?.textContent||"Hi, I am Buddy!"));
 $("#buddyVoiceStop")?.addEventListener("click",()=>{if("speechSynthesis"in window)window.speechSynthesis.cancel();$("#buddyCharacter")?.classList.remove("speaking");const status=$("#buddyVoiceStatus");if(status)status.textContent=$("#languageSelect")?.value!=="English"?"Røddin er steðgað.":"Voice stopped."});
 let buddyBusy=false;
-async function sendBuddy(t){
+async function sendBuddy(t,mode="chat"){
  t=String(t||"").trim();if(!t||buddyBusy)return;
  const box=$("#chatMessages"),fo=$("#languageSelect")?.value!=="English";
  const user=document.createElement("div");user.className="chat-bubble user-message";user.textContent=t;box.append(user);
@@ -67,10 +67,14 @@ async function sendBuddy(t){
  const system=fo
  ? "Tú eitur Buddy og ert ein blíður, hjálpsamur Bíbliu-lestrarhjálpari. Svara á føroyskum (føroyskt mál). Greið frá Bíbliuversum í greiðum máli, gev samanhang og nevna bók, kapittul og vers, tá tað er viðkomandi. Ver virðiligur móti kristnum trúarspurningum. Um tú ikki veitst nakað, sig tað. Finn ikki uppá beinleiðis Bíbliu-tilvitnanir. Tú ert ikki prestur ella gudfrøðiligur myndugleiki."
  : "You are Buddy, a kind and helpful Bible study companion. Answer in clear English. Explain Bible passages with context, mention book, chapter and verse when relevant, and be respectful of Christian beliefs and different interpretations. If unsure, say so. Never invent direct Bible quotations. You are not a pastor or theological authority.";
+ const modeInstruction=mode==="deep-study"
+ ? (fo?" Hetta er ein djúp bíbliugransking: skriva eina væl skipaða, gjøgnumarbeidda greining við yvirskriftum fyri samanhang, tekstbygnað, høvuðstema, vers-fyri-vers frágreiðing har hóskandi, aðrar bíbliu-tilvísingar, tulkingar og praktiska nýtslu. Brúka umleið 500-800 orð, men ver greið/ur. Skil týðiliga millum tekst og tulking. Uppfinn ikki fakta ella sitat.":" This is a DEEP STUDY, not a normal chat reply. Give a thorough, structured study with headings: context and original audience, literary structure, key themes, verse-by-verse explanation where appropriate, connected passages, interpretive views, and practical application. Aim for 500-800 words when the passage supports it. Clearly separate what the text says from interpretation. Never invent facts or quotations.")
+ : mode==="sermon" ? (fo?" Greina avskriftina gjølla, men greið og skipað.":" Analyze the transcript thoroughly but keep the breakdown clear and organized.")
+ : (fo?" Halt vanlig svar stutt og greið, vanliga 2-5 setningar og í mesta lagi umleið 100 orð, uttan at missa høvuðssvarið.":" Keep normal chat replies short and clear: usually 2-5 sentences and no more than about 100 words. Answer the question directly.") ;
  const history=[...box.querySelectorAll(".user-message,.buddy-message")].filter(el=>el!==typing).slice(-12).map(el=>({role:el.classList.contains("user-message")?"user":"assistant",content:el.textContent}));
  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),60000);
  try{
-  const response=await fetch("https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"Meta-Llama-3_3-70B-Instruct",messages:[{role:"system",content:system},...history],max_tokens:1200,temperature:0.5,stream:false}),credentials:"omit",signal:controller.signal});
+  const response=await fetch("https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"Meta-Llama-3_3-70B-Instruct",messages:[{role:"system",content:system+modeInstruction},...history],max_tokens:mode==="deep-study"?2400:mode==="sermon"?1800:500,temperature:0.5,stream:false}),credentials:"omit",signal:controller.signal});
   const raw=await response.text();let data={};try{data=raw?JSON.parse(raw):{}}catch(e){throw new Error("The AI service sent an unreadable response (HTTP "+response.status+").")}
   if(!response.ok)throw new Error(data?.error?.message||data?.message||("AI service returned HTTP "+response.status));
   const message=data?.choices?.[0]?.message;
@@ -378,7 +382,7 @@ page("home");
   const prompt=fo()
    ?"Ger eina djúpa bíbliugransking á føroyskum av "+passage+". Høvuðsdentur: "+focus+". Greið frá samanhangi, hvørjum teksturin varð skrivaður til, bygnaði, høvuðsevnum, týdningi, sambondum við onnur bíbliuvers og praktiskari nýtslu. Skil millum tað, teksturin beinleiðis sigur, og tulkingar. Uppfinn ikki sitat, søguligar upplýsingar ella upprunamálsfrøðiligar upplýsingar. Sig frá, um tú ert óvissur."
    :"Create a careful deep Bible study of "+passage+". Focus: "+focus+". Explain literary and historical context, original audience, structure, key themes, meaning, connections to other passages, and practical application. Distinguish what the text explicitly says from interpretation. Do not invent quotations, historical facts, or original-language claims. Note uncertainty and mention significant interpretive differences fairly.";
-  page("buddy");sendBuddy(prompt);
+  page("buddy");sendBuddy(prompt,"deep-study");
  });
 
  // Voice conversation: browser speech-to-text feeds Buddy; spoken answers use existing speech synthesis.
@@ -402,7 +406,7 @@ page("home");
   const prompt=fo()
    ?"Greina henda prædikuavskrift á føroyskum. Gev: 1) stutt yvirlit, 2) høvuðspunkt og boðskap, 3) allar nevndar Bíbliu-tilvísingar, 4) frágreiðing av tekstunum í samanhangi, 5) týdningarmiklar niðurstøður, 6) spurningar til bólkakjak, 7) ítøkilig stig at brúka í gerandisdegnum, 8) bønarhugskot. Ger vart við ógreið orð í avskriftini. Uppfinn ikki tilvísingar ella sitat. Her er avskriftin:\n\n"+transcript
    :"Analyze this sermon transcript. Provide: 1) concise summary, 2) main points and central message, 3) every Bible reference mentioned, 4) explanation of the passages in context, 5) key takeaways, 6) discussion questions for a study group, 7) practical next steps, and 8) a short prayer idea. Flag unclear transcript wording. Never invent references or quotations. Transcript:\n\n"+transcript;
-  page("buddy");sendBuddy(prompt);
+  page("buddy");sendBuddy(prompt,"sermon");
  };
 
  // Study groups are local-first. Share/export creates a portable text copy; no cloud sync is implied.
