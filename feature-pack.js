@@ -318,4 +318,109 @@ $("#bbGameCheck")?.addEventListener("click",()=>{if(selectedGameAnswer===null)re
 $("#bbGameNext")?.addEventListener("click",()=>{if(activeGameLevel<30&&gameState().completed.includes(activeGameLevel))loadGameLevel(activeGameLevel+1)});
 renderGameLevels();loadGameLevel(1);
 
+
+
+/* Seven extra Bible Games, each with ten progressive levels and saved progress. */
+const extraGames=[
+{ id:"whoami",icon:"🕵️",name:"Who Am I?",desc:"Guess the Bible person from three clues.",intro:"Read the clues and identify the person.",qs:[
+["I built an ark. God made a covenant sign with me.","Noah","Moses","Abraham","David",0],
+["I led Israel out of Egypt.","Joshua","Moses","Aaron","Joseph",1],
+["I defeated a giant with a sling.","Saul","Jonathan","David","Solomon",2],
+["I was swallowed by a great fish.","Peter","Jonah","Elijah","Amos",1],
+["I was known for wisdom and built the temple.","David","Hezekiah","Solomon","Saul",2],
+["I became queen and spoke up for my people.","Ruth","Esther","Deborah","Mary",1],
+["I interpreted dreams in Egypt and wore a special robe as a young man.","Joseph","Daniel","Jacob","Benjamin",0],
+["I was thrown into a lions' den but trusted God.","Jeremiah","Ezekiel","Daniel","Nehemiah",2],
+["I climbed a tree to see Jesus.","Nicodemus","Zacchaeus","Bartimaeus","Thomas",1],
+["I was a tax collector who became an apostle of Jesus.","Matthew","Andrew","Philip","James",0]]},
+{ id:"truefalse",icon:"✓",name:"Bible True or False",desc:"Test what you know with ten rounds.",intro:"Choose whether each Bible statement is true or false.",qs:[
+["Noah built an ark.","True","False","", "",0],["Moses led the Israelites out of Egypt.","True","False","","",0],["David was the oldest son of Jesse.","True","False","","",1],["Esther became queen of Egypt.","True","False","","",1],["Jesus was born in Bethlehem.","True","False","","",0],["There are four Gospels in the New Testament.","True","False","","",0],["Paul was one of the twelve disciples during Jesus' earthly ministry.","True","False","","",1],["The book of Acts tells about the early church.","True","False","","",0],["Ruth was Naomi's daughter-in-law.","True","False","","",0],["Revelation is the final book of the Bible.","True","False","","",0]]},
+{ id:"whosaidit",icon:"💬",name:"Who Said It?",desc:"Match memorable Bible words to the speaker.",intro:"Who spoke these words in the Bible story?",qs:[
+["“Here am I. Send me!”","Isaiah","Moses","Samuel","Jonah",0],
+["“Am I my brother’s keeper?”","Cain","Abel","Adam","Noah",0],
+["“Speak, Lord, for your servant is listening.”","David","Samuel","Solomon","Elijah",1],
+["“As for me and my household, we will serve the Lord.”","Joshua","Moses","Aaron","Caleb",0],
+["“The Lord is my shepherd.”","Isaiah","David","Solomon","Peter",1],
+["“I am the way and the truth and the life.”","Paul","Peter","Jesus","John",2],
+["“My Lord and my God!”","Thomas","Andrew","Philip","Matthew",0],
+["“Your people will be my people and your God my God.”","Esther","Ruth","Naomi","Miriam",1],
+["“I have fought the good fight.”","Timothy","Peter","Paul","James",2],
+["“Let there be light.”","Adam","Noah","Moses","God",3]]},
+{ id:"findbook",icon:"📖",name:"Find the Bible Book",desc:"Choose the book that contains the story or teaching.",intro:"Find the correct book of the Bible.",qs:[
+["Where do you read about creation?","Exodus","Genesis","Psalms","John",1],
+["Which book tells about the Israelites leaving Egypt?","Exodus","Ruth","Luke","Acts",0],
+["Where is the story of David and Goliath?","Judges","1 Samuel","1 Kings","Nehemiah",1],
+["Which book tells the story of Jonah?","Amos","Micah","Jonah","Hosea",2],
+["Where can you read about the birth of Jesus?","Matthew","Romans","Acts","Revelation",0],
+["Which book records the Sermon on the Mount?","Mark","Matthew","John","Acts",1],
+["Where is the fruit of the Spirit listed?","Galatians","Ephesians","Hebrews","James",0],
+["Which book describes the early church at Pentecost?","Romans","Acts","Jude","Titus",1],
+["Where is the famous chapter about love, chapter 13?","1 Corinthians","Genesis","Colossians","Revelation",0],
+["Which is the last book of the Bible?","Jude","Acts","Revelation","Malachi",2]]},
+{ id:"detective",icon:"🔎",name:"Bible Detective",desc:"Solve ten Bible story mysteries using the clues.",intro:"Study the evidence and solve the Bible mystery.",qs:[
+["A basket, a river and a princess. Which baby is this?","Samuel","Moses","Jesus","John",1],
+["A coat, dreams and Egypt point to whom?","Joseph","Jacob","Daniel","Benjamin",0],
+["A sling, five stones and a giant. What is the story?","Samson","David and Goliath","Joshua at Jericho","Gideon",1],
+["A den, lions and a faithful servant. Who is it?","Elijah","Daniel","Jeremiah","Isaiah",1],
+["A storm, a boat and Jesus saying “Peace, be still.”","Jesus calms the storm","Noah's flood","Jonah's voyage","Paul's shipwreck",0],
+["A wall falls after the people march and shout.","Jericho","Babylon","Jerusalem","Nineveh",0],
+["A lost son returns and his father welcomes him.","The Good Samaritan","The Prodigal Son","The Lost Sheep","The Sower",1],
+["A man stops on the road to help a wounded stranger.","The Good Samaritan","The Rich Young Ruler","Zacchaeus","Nicodemus",0],
+["A queen risks approaching the king to save her people.","Ruth","Esther","Deborah","Mary",1],
+["A light from heaven and a journey to Damascus change a persecutor.","Peter","Paul","Stephen","Barnabas",1]]},
+{ id:"kingdom",icon:"🏰",name:"Bible Kingdom Builder",desc:"Build a kingdom by making wise, Bible-inspired choices.",intro:"Choose the wise action to earn a kingdom star.",qs:[
+["Your people need guidance. What should a wise leader seek?","Personal fame","God's wisdom","More riches","Praise",1],
+["A neighbour is in need. What should your kingdom do?","Ignore them","Help with compassion","Mock them","Take from them",1],
+["A disagreement begins. What is a wise first step?","Listen and seek peace","Shout louder","Spread rumours","Walk away forever",0],
+["You made a mistake. What should you do?","Blame someone","Hide it","Admit it and make things right","Pretend it did not happen",2],
+["Your people feel afraid. What should you remind them?","They are alone","God is with them","Fear is always best","Give up",1],
+["A visitor is new. How should they be treated?","With welcome and kindness","With suspicion only","With unkind words","Ignore them",0],
+["You have more than you need. What is generous?","Keep everything","Share with those in need","Waste it","Boast about it",1],
+["Someone is treated unfairly. What should a just leader do?","Look away","Seek what is right","Join in","Stay silent to gain favour",1],
+["Your team succeeds. What should you do?","Take all the credit","Thank God and encourage everyone","Mock the others","Stop helping",1],
+["What is the strongest foundation for a faithful life?","Pride","Greed","Trust in God and follow his word","Popularity",2]]},
+{ id:"timelinechallenge",icon:"⌛",name:"Bible Timeline Challenge",desc:"Put major Bible events in the right order.",intro:"Choose what happened first in the Bible story.",qs:[
+["Which came first?","Noah's flood","Creation", "", "",1],
+["Which came first?","Joseph in Egypt","Abraham's call","","",1],
+["Which came first?","The Ten Commandments at Sinai","The Red Sea crossing","","",1],
+["Which came first?","David becomes king","Israel enters the promised land","","",1],
+["Which came first?","Solomon builds the temple","David defeats Goliath","","",1],
+["Which came first?","Daniel in Babylon","The kingdom divides","","",1],
+["Which came first?","Jesus is born","John the Baptist begins preaching","","",0],
+["Which came first?","Jesus' resurrection","Jesus' crucifixion","","",1],
+["Which came first?","Pentecost","Jesus' ascension","","",1],
+["Which came first?","Paul's missionary journeys","Jesus' resurrection","","",1]]}
+];
+extraGames.forEach(g=>{
+ page(g.id,g.name.split(" ").slice(0,-1).join(" ")+' <span>'+g.name.split(" ").slice(-1)[0]+'.</span>',g.desc,
+ '<div class="panel"><p class="eyebrow">10 LEVELS · YOUR PROGRESS</p><h2 id="bbx-progress-'+g.id+'">Level 1 unlocked</h2><div id="bbx-levels-'+g.id+'" style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px"></div></div><div class="panel"><p class="eyebrow" id="bbx-round-'+g.id+'">LEVEL 1 OF 10</p><p class="muted">'+g.intro+'</p><h2 id="bbx-question-'+g.id+'"></h2><div id="bbx-answers-'+g.id+'"></div><p id="bbx-feedback-'+g.id+'" aria-live="polite"></p><strong id="bbx-score-'+g.id+'">Points: 0</strong><p><button type="button" class="primary-btn" id="bbx-check-'+g.id+'" disabled>Check answer</button> <button type="button" class="secondary-btn" id="bbx-next-'+g.id+'" disabled>Next level</button></p></div>');
+ card(g.id,g.icon,g.name,g.desc);
+});
+function extraState(id){return read("game_"+id,{unlocked:1,completed:[],points:0})}
+function loadExtra(g,n){
+ const state=extraState(g.id);if(n>state.unlocked)return;
+ const q=g.qs[n-1],answers=q.slice(1,5).filter(v=>v!==""),host=$("#bbx-answers-"+g.id);
+ host.innerHTML=answers.map((a,i)=>'<button type="button" class="bb-choice" data-bbx-answer="'+i+'">'+esc(a)+'</button>').join("");
+ $("#bbx-round-"+g.id).textContent="LEVEL "+n+" OF 10";$("#bbx-question-"+g.id).textContent=q[0];
+ $("#bbx-feedback-"+g.id).textContent=state.completed.includes(n)?"Level completed — play again!":"Choose your answer.";
+ $("#bbx-score-"+g.id).textContent="Points: "+state.points;
+ $("#bbx-check-"+g.id).disabled=state.completed.includes(n);$("#bbx-next-"+g.id).disabled=!state.completed.includes(n)||n===10;
+ let chosen=null;
+ host.onclick=e=>{const b=e.target.closest("[data-bbx-answer]");if(!b||state.completed.includes(n))return;chosen=Number(b.dataset.bbxAnswer);host.querySelectorAll("button").forEach(x=>x.classList.toggle("correct",x===b));$("#bbx-check-"+g.id).disabled=false};
+ $("#bbx-check-"+g.id).onclick=()=>{
+ if(chosen===null)return;
+ if(chosen===q[5]){const s=extraState(g.id);if(!s.completed.includes(n)){s.completed.push(n);s.points+=100;s.unlocked=Math.min(10,Math.max(s.unlocked,n+1));save("game_"+g.id,s)}
+ $("#bbx-feedback-"+g.id).textContent="Correct! +100 points. "+(n===10?"You completed this game!":"Next level unlocked.");
+ host.querySelectorAll("button").forEach(x=>x.disabled=true);$("#bbx-check-"+g.id).disabled=true;$("#bbx-next-"+g.id).disabled=n===10;renderExtra(g);$("#bbx-score-"+g.id).textContent="Points: "+extraState(g.id).points;
+ }else{$("#bbx-feedback-"+g.id).textContent="Not quite. Try again!";host.querySelectorAll("button").forEach(x=>x.classList.remove("correct"));chosen=null;$("#bbx-check-"+g.id).disabled=true}
+ };
+ $("#bbx-next-"+g.id).onclick=()=>loadExtra(g,n+1);
+}
+function renderExtra(g){
+ const s=extraState(g.id),host=$("#bbx-levels-"+g.id);if(!host)return;host.innerHTML="";
+ for(let n=1;n<=10;n++){const b=document.createElement("button");b.type="button";b.className="secondary-btn";b.textContent=s.completed.includes(n)?"✓ "+n:String(n);b.disabled=n>s.unlocked;b.style.cssText="min-height:42px;padding:6px 2px;border-radius:9px";b.onclick=()=>loadExtra(g,n);host.append(b)}
+ $("#bbx-progress-"+g.id).textContent="Level "+s.unlocked+" of 10 unlocked · "+s.completed.length+" completed · "+s.points+" points";
+}
+extraGames.forEach(g=>{renderExtra(g);loadExtra(g,1)});
+
 })();
