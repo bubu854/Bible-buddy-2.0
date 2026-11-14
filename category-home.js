@@ -15,7 +15,7 @@ const t=title.toLowerCase();
 if(/verse wallpaper maker/.test(t)||["wallpaper","wallpapers","versewallpapermaker","verse-wallpaper-maker"].includes(page))return 5;
 if(/bible doodle studio|bible comic creator|comic creator|creative studio|art studio|sticker maker|verse animation|worship poster|profile designer/.test(t)||["artstudio","comiccreator","stickers","verseanimation","worshipposter","profiledesigner"].includes(page))return 6;
 if(/complete the bible in a year|read the bible|audio bible|connected verses|bible timeline|bible places|reading plans/.test(t))return 0;
-if(/bible explainer|bible reading partner|ask buddy|voice conversation|buddy voice|buddy personality/.test(t))return 1;
+if(/ask buddy to pray/.test(t))return 4;\nif(/bible explainer|bible reading partner|ask buddy|voice conversation|buddy voice|buddy personality/.test(t))return 1;
 if(/deep bible study|smart study|memorise scripture|sermon recorder|sermon intelligence|my journal/.test(t))return 2;
 if(/bible quiz|quiz battle|story mode|study groups|group challenge/.test(t))return 3;
 if(/ask buddy to pray|prayer|worship|daily reminder|verse of the day/.test(t))return 4;
