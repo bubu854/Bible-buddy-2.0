@@ -170,4 +170,107 @@ bbRenderYear();
 $("#buddy-page .prompt-chips")?.insertAdjacentHTML("beforeend",'<button class="prompt-chip" type="button" data-bb-prompt="Explain a Bible passage in simple language, with its context and practical meaning.">Bible Explainer</button><button class="prompt-chip" type="button" data-bb-prompt="Be my Bible reading partner. Help me read a passage, pause for reflection, ask me questions, and discuss what it means.">Read together</button><button class="prompt-chip" type="button" data-bb-prompt="Help me write a sincere prayer. Ask what I would like to pray about if I have not said.">Help me pray</button>');
 document.addEventListener("click",e=>{const b=e.target.closest("[data-bb-prompt]");if(!b)return;const input=document.querySelector("#chatInput");if(input){input.value=b.dataset.bbPrompt;document.querySelector("#chatForm")?.requestSubmit()}});
 
+
+/* Six requested tools: translation helper, book explorer, question notebook,
+   Bible comparison, prayer timer, and Christian T-shirt designer. */
+page("translationhelper","Buddy <span>Translation Helper.</span>","Explore a Bible passage in English, Faroese or Bemba with Buddy.",'<div class="panel"><label for="bbTranslatePassage">PASSAGE OR VERSE</label><textarea id="bbTranslatePassage" rows="4" placeholder="Paste a Bible verse or passage here"></textarea><label for="bbTranslateLanguage">EXPLAIN IN</label><select id="bbTranslateLanguage"><option>English</option><option>Faroese</option><option>Bemba</option></select><p class="small-note">Buddy can explain the meaning, context and key words in your chosen language.</p><button type="button" class="primary-btn" id="bbTranslateAsk">Ask Buddy to explain</button></div>');
+page("bookexplorer","Book-by-Book <span>Explorer.</span>","Explore all 66 books of the Bible, their themes and key passages.",'<div class="panel"><label for="bbBookSelect">CHOOSE A BIBLE BOOK</label><select id="bbBookSelect"></select><div class="bb-extra-card" id="bbBookDetails" aria-live="polite"></div></div>');
+page("questionnotebook","Bible Questions <span>Notebook.</span>","Save questions that you want to explore during Bible study.",'<div class="panel"><label for="bbQuestionInput">YOUR BIBLE QUESTION</label><textarea id="bbQuestionInput" rows="3" placeholder="What would you like to understand?"></textarea><button type="button" class="primary-btn" id="bbQuestionSave">Save question</button><div id="bbQuestionList"></div></div>');
+page("biblecompare","Bible <span>Comparison Tool.</span>","Compare wording from Bible translations and reflect on the differences.",'<div class="panel"><label for="bbCompareRef">VERSE REFERENCE</label><input id="bbCompareRef" placeholder="For example, John 3:16"><label for="bbCompareA">TRANSLATION 1 — PASTE TEXT</label><textarea id="bbCompareA" rows="3" placeholder="Paste the first translation"></textarea><label for="bbCompareB">TRANSLATION 2 — PASTE TEXT</label><textarea id="bbCompareB" rows="3" placeholder="Paste the second translation"></textarea><button type="button" class="primary-btn" id="bbCompareAnalyze">Compare the wording</button><div id="bbCompareResult" class="bb-extra-card" aria-live="polite"></div><p class="small-note">Paste text from translations you are allowed to use. Buddy can help explain wording differences.</p></div>');
+page("prayertimer","Prayer <span>Timer with Music.</span>","Set aside a quiet moment for prayer with gentle background sound.",'<div class="panel"><label for="bbPrayerMinutes">PRAYER TIME</label><select id="bbPrayerMinutes"><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="20">20 minutes</option><option value="30">30 minutes</option></select><div id="bbPrayerClock" style="font:700 48px Georgia;text-align:center;padding:24px;color:#e8d19a">05:00</div><p><button type="button" class="primary-btn" id="bbPrayerStart">Start prayer time</button> <button type="button" class="secondary-btn" id="bbPrayerPause">Pause</button> <button type="button" class="secondary-btn" id="bbPrayerReset">Reset</button></p><label class="bb-task"><input type="checkbox" id="bbPrayerMusic" checked><span>Play gentle instrumental background sound</span></label><p class="small-note" id="bbPrayerTimerStatus">Choose a time and begin when you are ready.</p></div>');
+page("tshirtdesigner","Christian T-Shirt <span>Designer.</span>","Create a Christian shirt design with your own message and colours.",'<div class="panel"><label for="bbShirtWords">YOUR SHIRT MESSAGE</label><input id="bbShirtWords" value="JESUS IS KING" maxlength="36"><label for="bbShirtSymbol">SYMBOL</label><select id="bbShirtSymbol"><option>✝</option><option>♡</option><option>✦</option><option>🕊</option><option>☀</option></select><label for="bbShirtColor">SHIRT COLOUR</label><input id="bbShirtColor" type="color" value="#172e50"><label for="bbShirtInk">PRINT COLOUR</label><input id="bbShirtInk" type="color" value="#f4e3b2"><canvas id="bbShirtCanvas" width="900" height="1000" style="display:block;width:100%;max-width:360px;margin:14px auto;border-radius:14px;background:#0b1425"></canvas><button type="button" class="primary-btn" id="bbShirtUpdate">Update design</button> <button type="button" class="secondary-btn" id="bbShirtSave">Save design</button></div>');
+
+card("translationhelper","文","Buddy Translation Helper","Explore Bible passages in English, Faroese and Bemba");
+card("bookexplorer","▤","Book-by-Book Explorer","Discover all 66 Bible books and their key themes");
+card("questionnotebook","✎","Bible Questions Notebook","Save questions to explore later");
+card("biblecompare","⇄","Bible Comparison Tool","Compare wording from different Bible translations");
+card("prayertimer","◷","Prayer Timer with Music","Set a quiet prayer time with gentle background sound");
+card("tshirtdesigner","✝","Christian T-Shirt Designer","Create your own Christian shirt design");
+
+const books=[
+["Genesis","Old Testament","Beginnings: creation, humanity, the fall, the flood and the promises to Abraham."],
+["Exodus","Old Testament","God rescues Israel from Egypt, makes a covenant and gives instructions for worship."],
+["Leviticus","Old Testament","Laws and worship instructions teaching Israel about holiness and living near God."],
+["Numbers","Old Testament","Israel's wilderness journey, struggles and preparation to enter the promised land."],
+["Deuteronomy","Old Testament","Moses reminds Israel of God's law and faithfulness before they enter the land."],
+["Joshua","Old Testament","Israel enters and settles in the promised land."],
+["Judges","Old Testament","Stories of Israel's cycles of turning away, trouble and rescue."],
+["Ruth","Old Testament","A story of loyalty, kindness and God's care through Ruth's family."],
+["1 Samuel","Old Testament","Samuel, Saul and the beginning of David's rise."],
+["2 Samuel","Old Testament","David's reign, victories, failures and God's covenant promise."],
+["1 Kings","Old Testament","Solomon's reign, the temple and the divided kingdom."],
+["2 Kings","Old Testament","The divided kingdoms, prophets and the exiles."],
+["1 Chronicles","Old Testament","Genealogies and a retelling of David's reign."],
+["2 Chronicles","Old Testament","Judah's kings, the temple and the exile."],
+["Ezra","Old Testament","The return from exile and rebuilding of the temple."],
+["Nehemiah","Old Testament","Jerusalem's wall is rebuilt and the people renew their commitment."],
+["Esther","Old Testament","Esther courageously helps protect her people."],
+["Job","Old Testament","A profound exploration of suffering, faith and God's wisdom."],
+["Psalms","Old Testament","Songs and prayers of praise, lament, trust and thanksgiving."],
+["Proverbs","Old Testament","Practical wisdom for choices, relationships and daily life."],
+["Ecclesiastes","Old Testament","Reflection on life's meaning and the importance of reverence for God."],
+["Song of Solomon","Old Testament","Poetry celebrating love and commitment."],
+["Isaiah","Old Testament","Prophetic messages of judgement, hope, comfort and the coming servant."],
+["Jeremiah","Old Testament","A prophet calls Judah to return to God and speaks of a new covenant."],
+["Lamentations","Old Testament","Poems grieving Jerusalem's destruction while holding on to God's mercy."],
+["Ezekiel","Old Testament","Visions of judgement, restoration and a renewed people."],
+["Daniel","Old Testament","Stories of faithfulness in exile and visions of God's kingdom."],
+["Hosea","Old Testament","A prophet's family story pictures God's faithful love for Israel."],
+["Joel","Old Testament","A call to return to God and a promise of the Spirit."],
+["Amos","Old Testament","A call for justice, righteousness and sincere worship."],
+["Obadiah","Old Testament","A message about Edom's pride and God's justice."],
+["Jonah","Old Testament","A reluctant prophet learns about God's compassion."],
+["Micah","Old Testament","A call to act justly, love mercy and walk humbly with God."],
+["Nahum","Old Testament","A prophecy concerning the fall of Nineveh."],
+["Habakkuk","Old Testament","A prophet wrestles with injustice and learns to live by faith."],
+["Zephaniah","Old Testament","Warnings of judgement and promises of restoration."],
+["Haggai","Old Testament","The people are encouraged to rebuild the temple."],
+["Zechariah","Old Testament","Visions of hope and promises about God's coming king."],
+["Malachi","Old Testament","A call to faithful worship and a promise of a coming messenger."],
+["Matthew","New Testament","Presents Jesus as the Messiah and teaches about the kingdom of heaven."],
+["Mark","New Testament","A fast-moving account of Jesus' actions, service, death and resurrection."],
+["Luke","New Testament","An orderly account highlighting Jesus' compassion and good news for all."],
+["John","New Testament","Shows Jesus as the Son of God so readers may believe and have life."],
+["Acts","New Testament","The Holy Spirit empowers the early church to spread the gospel."],
+["Romans","New Testament","Explains the gospel, grace, faith and life in Christ."],
+["1 Corinthians","New Testament","Guidance for a divided church about unity, love and worship."],
+["2 Corinthians","New Testament","Paul describes Christian ministry, comfort and generous giving."],
+["Galatians","New Testament","Explains freedom in Christ and being made right through faith."],
+["Ephesians","New Testament","Explores unity in Christ and life as God's people."],
+["Philippians","New Testament","A letter about joy, humility and following Christ."],
+["Colossians","New Testament","Emphasises the supremacy and sufficiency of Christ."],
+["1 Thessalonians","New Testament","Encouragement in faith, holiness and hope in Jesus' return."],
+["2 Thessalonians","New Testament","Clarifies teaching about the day of the Lord and encourages perseverance."],
+["1 Timothy","New Testament","Guidance for church leadership, teaching and godly living."],
+["2 Timothy","New Testament","Paul encourages Timothy to remain faithful and continue teaching."],
+["Titus","New Testament","Instructions about healthy teaching and good works."],
+["Philemon","New Testament","A personal appeal for forgiveness and welcome."],
+["Hebrews","New Testament","Shows Jesus as greater and encourages persevering faith."],
+["James","New Testament","Practical teaching about living out faith through actions."],
+["1 Peter","New Testament","Encouragement to remain faithful through suffering."],
+["2 Peter","New Testament","Warnings about false teaching and a call to grow in Christ."],
+["1 John","New Testament","Teaches about love, truth and assurance in Christ."],
+["2 John","New Testament","Encourages walking in truth and love."],
+["3 John","New Testament","Commends hospitality and faithful support of others."],
+["Jude","New Testament","Calls believers to hold firmly to the faith."],
+["Revelation","New Testament","Apocalyptic visions of Christ's victory and God's renewed creation."]
+];
+const bookSelect=$("#bbBookSelect");
+if(bookSelect){books.forEach((b,i)=>{const o=document.createElement("option");o.value=String(i);o.textContent=b[0]+" · "+b[1];bookSelect.append(o)});const showBook=()=>{const b=books[Number(bookSelect.value)]||books[0];$("#bbBookDetails").innerHTML="<p class='eyebrow'>"+b[1].toUpperCase()+"</p><h2>"+b[0]+"</h2><p>"+b[2]+"</p><p class='small-note'>Open this book in your Bible to read the full text.</p>"};bookSelect.addEventListener("change",showBook);showBook()}
+function renderQuestions(){const list=$("#bbQuestionList");if(!list)return;const qs=read("bible_questions",[]);list.innerHTML=qs.length?qs.map((q,i)=>'<div class="bb-task"><span style="flex:1">'+esc(q)+'</span><button type="button" class="secondary-btn" data-bb-qdel="'+i+'">Delete</button></div>').join(""):'<p class="small-note">Your saved questions will appear here.</p>'}
+$("#bbQuestionSave")?.addEventListener("click",()=>{const v=$("#bbQuestionInput").value.trim();if(!v)return toast("Write a question first.");const qs=read("bible_questions",[]);qs.unshift(v);save("bible_questions",qs);$("#bbQuestionInput").value="";renderQuestions();toast("Question saved.")});
+$("#bbQuestionList")?.addEventListener("click",e=>{const b=e.target.closest("[data-bb-qdel]");if(!b)return;const qs=read("bible_questions",[]);qs.splice(Number(b.dataset.bbQdel),1);save("bible_questions",qs);renderQuestions()});renderQuestions();
+$("#bbTranslateAsk")?.addEventListener("click",()=>{const passage=$("#bbTranslatePassage").value.trim();if(!passage)return toast("Add a Bible passage first.");const lang=$("#bbTranslateLanguage").value;const prompt="Please explain this Bible passage in "+lang+". Include a clear translation or paraphrase where appropriate, key words, context, and a simple explanation. Passage: "+passage;const chat=$("#chatInput");if(chat){chat.value=prompt;page("buddy");$("#chatForm")?.requestSubmit()}else toast("Open Buddy to continue.")});
+$("#bbCompareAnalyze")?.addEventListener("click",()=>{const a=$("#bbCompareA").value.trim(),b=$("#bbCompareB").value.trim(),ref=$("#bbCompareRef").value.trim();if(!a||!b){toast("Paste both translation texts first.");return}const prompt="Compare these two Bible translation wordings for "+(ref||"this passage")+". Explain shared meaning, wording differences, and what readers should notice without claiming a translation is automatically better. Translation 1: "+a+" Translation 2: "+b;const chat=$("#chatInput");if(chat){chat.value=prompt;page("buddy");$("#chatForm")?.requestSubmit()}else $("#bbCompareResult").textContent="Open Buddy and ask: "+prompt});
+let prayerRemain=300,prayerTicker=null;
+function prayerDisplay(){const m=Math.floor(prayerRemain/60),s=prayerRemain%60;$("#bbPrayerClock").textContent=String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")}
+function prayerStop(){if(prayerTicker){clearInterval(prayerTicker);prayerTicker=null}}
+function prayerReset(){prayerStop();prayerRemain=Number($("#bbPrayerMinutes")?.value||5)*60;prayerDisplay();$("#bbPrayerTimerStatus").textContent="Ready when you are."}
+$("#bbPrayerMinutes")?.addEventListener("change",prayerReset);
+$("#bbPrayerStart")?.addEventListener("click",()=>{if(prayerRemain<=0)prayerReset();if(prayerTicker)return;$("#bbPrayerTimerStatus").textContent="Your quiet prayer time has begun.";if($("#bbPrayerMusic").checked){const p=$("#bbWorshipPlay");if(p)p.click()}prayerTicker=setInterval(()=>{prayerRemain=Math.max(0,prayerRemain-1);prayerDisplay();if(prayerRemain===0){prayerStop();$("#bbPrayerTimerStatus").textContent="Prayer time complete. Take a moment to reflect.";if($("#bbWorshipStop"))$("#bbWorshipStop").click()}},1000)});
+$("#bbPrayerPause")?.addEventListener("click",()=>{prayerStop();$("#bbPrayerTimerStatus").textContent="Timer paused."});
+$("#bbPrayerReset")?.addEventListener("click",prayerReset);prayerReset();
+function drawShirt(){const c=$("#bbShirtCanvas");if(!c)return;const x=c.getContext("2d"),shirt=$("#bbShirtColor").value,ink=$("#bbShirtInk").value;x.clearRect(0,0,c.width,c.height);x.fillStyle="#0b1425";x.fillRect(0,0,c.width,c.height);x.fillStyle=shirt;x.beginPath();x.moveTo(280,120);x.lineTo(180,170);x.lineTo(70,300);x.lineTo(190,400);x.lineTo(250,340);x.lineTo(250,870);x.lineTo(650,870);x.lineTo(650,340);x.lineTo(710,400);x.lineTo(830,300);x.lineTo(720,170);x.lineTo(620,120);x.quadraticCurveTo(450,230,280,120);x.closePath();x.fill();x.strokeStyle="#ffffff55";x.lineWidth=8;x.stroke();x.fillStyle=ink;x.textAlign="center";x.font="bold 110px Georgia";x.fillText($("#bbShirtSymbol").value,450,450);x.font="bold 48px Arial";const words=$("#bbShirtWords").value.trim().toUpperCase();const lines=[];let line="";words.split(/\s+/).forEach(w=>{const next=(line+" "+w).trim();if(x.measureText(next).width>330&&line){lines.push(line);line=w}else line=next});if(line)lines.push(line);lines.slice(0,3).forEach((v,i)=>x.fillText(v,450,550+i*62))}
+["bbShirtWords","bbShirtSymbol","bbShirtColor","bbShirtInk"].forEach(id=>$("#"+id)?.addEventListener("input",drawShirt));$("#bbShirtUpdate")?.addEventListener("click",drawShirt);$("#bbShirtSave")?.addEventListener("click",()=>{drawShirt();const a=document.createElement("a");a.download="bible-buddy-christian-shirt.png";a.href=$("#bbShirtCanvas").toDataURL("image/png");a.click()});drawShirt();
+
 })();
