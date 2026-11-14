@@ -164,7 +164,7 @@ function bbRenderYear(){
  $("#bbYearStatus").textContent=(st.completed||0)+" days completed";bbSaveYear(st);
 }
 $("#bbYearDone")?.addEventListener("click",()=>{const s=bbYearState();if(s.lastDone===s.day){$("#bbYearStatus").textContent="Today is already marked complete.";return}s.completed=(s.completed||0)+1;s.lastDone=s.day;s.day=Math.min(365,s.day+1);s.charIndex=(s.charIndex||0)+1;bbSaveYear(s);bbRenderYear()});
-$("#bbYearNext")?.addEventListener("click",()=>{const s=bbYearState();s.order=bbShuffleCharacters();s.charIndex=0;bbSaveYear(s);bbRenderYear()});
+$("#bbYearNext")?.addEventListener("click",()=>{const s=bbYearState();s.charIndex=(s.charIndex||0)+1;bbSaveYear(s);bbRenderYear()});
 $("#bbYearReset")?.addEventListener("click",()=>{if(confirm("Restart your 365-day reading plan?")){localStorage.removeItem("bb_year_plan");bbRenderYear()}});
 bbRenderYear();
 $("#buddy-page .prompt-chips")?.insertAdjacentHTML("beforeend",'<button class="prompt-chip" type="button" data-bb-prompt="Explain a Bible passage in simple language, with its context and practical meaning.">Bible Explainer</button><button class="prompt-chip" type="button" data-bb-prompt="Be my Bible reading partner. Help me read a passage, pause for reflection, ask me questions, and discuss what it means.">Read together</button><button class="prompt-chip" type="button" data-bb-prompt="Help me write a sincere prayer. Ask what I would like to pray about if I have not said.">Help me pray</button>');
