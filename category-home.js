@@ -13,12 +13,12 @@ const groups=[
 const classify=(title,page)=>{
  const t=title.toLowerCase();
  if(/verse wallpaper maker/.test(t)||["wallpaper","wallpapers","versewallpapermaker","verse-wallpaper-maker"].includes(page))return 5;
- if(/bible doodle studio|bible comic creator|comic creator|creative studio|art studio|sticker maker|verse animation|worship poster|profile designer/.test(t)||["artstudio","comiccreator","stickers","verseanimation","worshipposter","profiledesigner"].includes(page))return 6;
+ if(/bible doodle studio|bible comic creator|comic creator|creative studio|art studio|sticker maker|verse animation|worship poster|profile designer|t-shirt designer/.test(t)||["artstudio","comiccreator","stickers","verseanimation","worshipposter","profiledesigner","tshirtdesigner"].includes(page))return 6;
  if(/complete the bible in a year|read the bible|audio bible|connected verses|bible timeline|bible places|reading plans/.test(t)||["bible","plans","timeline","maps"].includes(page))return 0;
- if(/bible explainer|bible reading partner|ask buddy|voice conversation|buddy voice|buddy personality/.test(t)||page==="buddy")return 1;
- if(/deep bible study|smart study|memorise scripture|sermon recorder|sermon intelligence|my journal/.test(t)||["recorder","journal","deepstudy","memorise","smartnotes"].includes(page))return 2;
+ if(/bible explainer|bible reading partner|ask buddy|voice conversation|buddy voice|buddy personality|translation helper/.test(t)||["buddy","translationhelper"].includes(page))return 1;
+ if(/deep bible study|smart study|memorise scripture|sermon recorder|sermon intelligence|my journal|book-by-book explorer|questions notebook|comparison tool/.test(t)||["recorder","journal","deepstudy","memorise","smartnotes","bookexplorer","questionnotebook","biblecompare"].includes(page))return 2;
  if(/bible quiz|quiz battle|story mode|study groups|group challenge/.test(t)||["quiz","quizbattle","stories","groupchallenge","groups"].includes(page))return 3;
- if(/ask buddy to pray|prayer|worship|daily reminder|verse of the day/.test(t)||["prayer","prayerjournal","worship"].includes(page))return 4;
+ if(/ask buddy to pray|prayer|worship|daily reminder|verse of the day/.test(t)||["prayer","prayerjournal","worship","prayertimer"].includes(page))return 4;
  if(/wallpaper|saved verse|share a bible verse/.test(t))return 5;
  if(/language|reading speed|app preferences|settings/.test(t)||page==="settings")return 7;
  return 2;
