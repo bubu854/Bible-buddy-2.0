@@ -273,4 +273,49 @@ $("#bbPrayerReset")?.addEventListener("click",prayerReset);prayerReset();
 function drawShirt(){const c=$("#bbShirtCanvas");if(!c)return;const x=c.getContext("2d"),shirt=$("#bbShirtColor").value,ink=$("#bbShirtInk").value;x.clearRect(0,0,c.width,c.height);x.fillStyle="#0b1425";x.fillRect(0,0,c.width,c.height);x.fillStyle=shirt;x.beginPath();x.moveTo(280,120);x.lineTo(180,170);x.lineTo(70,300);x.lineTo(190,400);x.lineTo(250,340);x.lineTo(250,870);x.lineTo(650,870);x.lineTo(650,340);x.lineTo(710,400);x.lineTo(830,300);x.lineTo(720,170);x.lineTo(620,120);x.quadraticCurveTo(450,230,280,120);x.closePath();x.fill();x.strokeStyle="#ffffff55";x.lineWidth=8;x.stroke();x.fillStyle=ink;x.textAlign="center";x.font="bold 110px Georgia";x.fillText($("#bbShirtSymbol").value,450,450);x.font="bold 48px Arial";const words=$("#bbShirtWords").value.trim().toUpperCase();const lines=[];let line="";words.split(/\s+/).forEach(w=>{const next=(line+" "+w).trim();if(x.measureText(next).width>330&&line){lines.push(line);line=w}else line=next});if(line)lines.push(line);lines.slice(0,3).forEach((v,i)=>x.fillText(v,450,550+i*62))}
 ["bbShirtWords","bbShirtSymbol","bbShirtColor","bbShirtInk"].forEach(id=>$("#"+id)?.addEventListener("input",drawShirt));$("#bbShirtUpdate")?.addEventListener("click",drawShirt);$("#bbShirtSave")?.addEventListener("click",()=>{drawShirt();const a=document.createElement("a");a.download="bible-buddy-christian-shirt.png";a.href=$("#bbShirtCanvas").toDataURL("image/png");a.click()});drawShirt();
 
+
+/* Bible Games: 30 progressive levels with saved unlocks. */
+page("biblegames","Bible <span>Games.</span>","Play through 30 levels, learn Bible facts and unlock every challenge.",'<div class="panel"><p class="eyebrow">YOUR PROGRESS</p><h2 id="bbGameProgress">Level 1 of 30 unlocked</h2><div id="bbGameLevels" style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px"></div></div><div class="panel" id="bbGamePlay"><p class="eyebrow" id="bbGameRound">LEVEL 1</p><h2 id="bbGameQuestion">Choose a level to begin!</h2><div id="bbGameAnswers"></div><p id="bbGameFeedback" aria-live="polite"></p><p><strong id="bbGameScore">Points: 0</strong></p><button type="button" class="primary-btn" id="bbGameCheck" disabled>Check answer</button> <button type="button" class="secondary-btn" id="bbGameNext" disabled>Next level</button></div>');
+card("biblegames","🎮","Bible Games","Play 30 levels of Bible quizzes and unlock new challenges");
+const gameQs=[
+["What did God create on the first day? ",["Light","Animals","The sun and moon","People"],0],
+["Who built an ark? ",["Abraham","Noah","Moses","Jacob"],1],
+["What sign did God give after the flood? ",["A rainbow","A star","A cloud","A dove"],0],
+["Who was placed in a basket as a baby? ",["Samuel","David","Moses","Joseph"],2],
+["What sea did the Israelites cross? ",["Dead Sea","Red Sea","Sea of Galilee","Mediterranean Sea"],1],
+["Who received the Ten Commandments? ",["Aaron","Joshua","Moses","Caleb"],2],
+["Who defeated Goliath? ",["David","Saul","Jonathan","Solomon"],0],
+["Who was known for great wisdom as king? ",["Saul","Solomon","Ahab","Hezekiah"],1],
+["Who was swallowed by a great fish? ",["Jonah","Elijah","Isaiah","Amos"],0],
+["Who showed loyalty to Naomi? ",["Esther","Ruth","Deborah","Miriam"],1],
+["Who was thrown into the lions' den? ",["Daniel","Jeremiah","Ezekiel","Nehemiah"],0],
+["Who became queen and helped save her people? ",["Ruth","Esther","Sarah","Rebekah"],1],
+["Where was Jesus born? ",["Nazareth","Jerusalem","Bethlehem","Capernaum"],2],
+["Who baptised Jesus? ",["Peter","John the Baptist","James","Andrew"],1],
+["How many disciples did Jesus choose? ",["10","11","12","14"],2],
+["What was Jesus' first recorded sign in John's Gospel? ",["Healing a blind man","Walking on water","Turning water into wine","Feeding 5,000"],2],
+["Who climbed a tree to see Jesus? ",["Nicodemus","Zacchaeus","Bartimaeus","Lazarus"],1],
+["What did Jesus use to feed the crowd of 5,000? ",["Five loaves and two fish","Seven loaves","Manna","Grapes"],0],
+["Which disciple walked on water toward Jesus? ",["John","Thomas","Peter","Philip"],2],
+["Who betrayed Jesus? ",["Judas Iscariot","Peter","Matthew","Thomas"],0],
+["Who denied knowing Jesus three times? ",["John","Peter","James","Andrew"],1],
+["What happened on the third day after Jesus died? ",["The tomb was sealed","Jesus rose again","The disciples left","The temple fell"],1],
+["Who met Jesus on the road to Damascus? ",["Barnabas","Paul","Timothy","Silas"],1],
+["What came upon the disciples at Pentecost? ",["The Holy Spirit","A storm","An earthquake","A new king"],0],
+["Which book tells the story of the early church? ",["Romans","Acts","Hebrews","Revelation"],1],
+["What is the last book of the Bible? ",["Jude","Acts","Revelation","Malachi"],2],
+["Who wrote many letters to early churches? ",["Paul","Joshua","Gideon","Samuel"],0],
+["What is the fruit of the Spirit listed in Galatians 5? ",["Love, joy and peace among others","Gold and silver","Power and fame","Long life"],0],
+["According to 1 Corinthians 13, what is the greatest? ",["Faith","Hope","Love","Knowledge"],2],
+["What does Revelation describe God making new? ",["A new heaven and a new earth","A new temple only","A new sea only","A new city only"],0]
+];
+const gameState=()=>read("bible_game_progress",{unlocked:1,completed:[],points:0});
+let activeGameLevel=1,selectedGameAnswer=null;
+function renderGameLevels(){const state=gameState(),host=$("#bbGameLevels");if(!host)return;host.innerHTML="";for(let n=1;n<=30;n++){const b=document.createElement("button");b.type="button";b.textContent=state.completed.includes(n)?"✓ "+n:String(n);b.disabled=n>state.unlocked;b.className="secondary-btn";b.style.cssText="min-height:44px;padding:8px 2px;border-radius:10px;"+(n===activeGameLevel?"border:2px solid #e8d19a;":"");b.setAttribute("aria-label","Level "+n+(n>state.unlocked?", locked":""));b.addEventListener("click",()=>loadGameLevel(n));host.append(b)}$("#bbGameProgress").textContent="Level "+state.unlocked+" of 30 unlocked · "+state.completed.length+" completed · "+state.points+" points"}
+function loadGameLevel(n){const state=gameState();if(n>state.unlocked)return;activeGameLevel=n;selectedGameAnswer=null;const q=gameQs[n-1];$("#bbGameRound").textContent="LEVEL "+n+" OF 30";$("#bbGameQuestion").textContent=q[0];$("#bbGameAnswers").innerHTML=q[1].map((a,i)=>'<button type="button" class="bb-choice" data-game-answer="'+i+'">'+esc(a)+'</button>').join("");$("#bbGameFeedback").textContent=state.completed.includes(n)?"You have completed this level. You can play it again!":"Choose your answer.";$("#bbGameScore").textContent="Points: "+state.points;$("#bbGameCheck").disabled=state.completed.includes(n);$("#bbGameNext").disabled=!state.completed.includes(n)||n>=30;renderGameLevels()}
+$("#bbGameAnswers")?.addEventListener("click",e=>{const b=e.target.closest("[data-game-answer]");if(!b||gameState().completed.includes(activeGameLevel))return;selectedGameAnswer=Number(b.dataset.gameAnswer);$("#bbGameAnswers").querySelectorAll("button").forEach(x=>x.classList.toggle("correct",x===b));$("#bbGameCheck").disabled=false;$("#bbGameFeedback").textContent="Answer selected. Press Check answer."});
+$("#bbGameCheck")?.addEventListener("click",()=>{if(selectedGameAnswer===null)return;const q=gameQs[activeGameLevel-1],state=gameState();if(selectedGameAnswer===q[2]){if(!state.completed.includes(activeGameLevel)){state.completed.push(activeGameLevel);state.points+=100;state.unlocked=Math.min(30,Math.max(state.unlocked,activeGameLevel+1));save("bible_game_progress",state)}$("#bbGameFeedback").textContent="Correct! +100 points. "+(activeGameLevel===30?"You completed all 30 levels!":"The next level is unlocked.");$("#bbGameAnswers").querySelectorAll("button").forEach(x=>x.disabled=true);$("#bbGameCheck").disabled=true;$("#bbGameNext").disabled=activeGameLevel>=30;renderGameLevels()}else{$("#bbGameFeedback").textContent="Not quite. Try again!";$("#bbGameAnswers").querySelectorAll("button").forEach(x=>x.classList.remove("correct"));selectedGameAnswer=null;$("#bbGameCheck").disabled=true}});
+$("#bbGameNext")?.addEventListener("click",()=>{if(activeGameLevel<30&&gameState().completed.includes(activeGameLevel))loadGameLevel(activeGameLevel+1)});
+renderGameLevels();loadGameLevel(1);
+
 })();
