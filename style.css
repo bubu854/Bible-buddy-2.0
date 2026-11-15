@@ -331,3 +331,34 @@ canvas.bb-wallpaper{display:block;box-sizing:border-box;width:min(100%,340px)!im
 .bb-community-page .bb-profile-extra-grid>div{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .bb-community-page .bb-video-upload{background:transparent;border:1px solid #8e7135;color:#e8c66f;border-radius:7px}
 @media(max-width:420px){.bb-community-page .bb-profile-heading{flex-basis:calc(100% - 115px)}.bb-community-page .bb-photo-button{margin-left:auto}}
+
+
+/* Bible Buddy global theme system — black and gold default, user-customisable */
+:root{--bg:#030303;--panel:#111111;--panel2:#1b1b1b;--gold:#d4b46b;--gold2:#f0d99b;--text:#f4f0e5;--muted:#aaa49a;--line:#38332a}
+body{background:var(--bg)!important;color:var(--text)}
+.topbar,.bottom-nav{background:color-mix(in srgb,var(--bg) 94%,transparent)!important;border-color:var(--line)!important}
+.brand-mark{background:var(--panel2)!important;color:var(--gold)!important;border-color:var(--gold)!important}
+.welcome,.verse-card,.buddy-character-card,.panel,.feature-card,.plan-card,.place-grid article,.record-orb,.buddy-intro,.saved-item,.quiz-answer,.prompt-chip,.secondary-btn,.plan-open{background:var(--panel)!important;color:var(--text);border-color:var(--line)!important}
+.welcome,.verse-card,.buddy-character-card,.feature-card.featured{background:linear-gradient(145deg,var(--panel2),var(--panel))!important}
+.feature-card,.plan-card,.place-grid article,.saved-item{color:var(--text)!important}
+.primary-btn,.chat-form button,.toast{background:var(--gold)!important;color:var(--bg)!important;border-color:var(--gold)!important}
+.secondary-btn,.plan-open,.prompt-chip{background:var(--panel2)!important;color:var(--text)!important;border-color:var(--line)!important}
+.eyebrow,.feature-icon,.verse-ref,.nav-item.active,.reading-area h2,.bible-verse sup,.buddy-character-copy strong,.home-bottom small{color:var(--gold)!important}
+.muted,.small-note,.feature-card small,.setting-row small{color:var(--muted)!important}
+input,select,textarea,.chat-form input{background:var(--panel)!important;color:var(--text)!important;border-color:var(--line)!important}
+.buddy-message,.user-message,.chat-bubble,.community-post,.bb-own-post,.bb-profile-hero,.bb-story-add,.bb-story-ring,.bb-video-card{background:var(--panel2)!important;color:var(--text)!important;border-color:var(--line)!important}
+.bb-community-page,.bb-community-page #community-tools,.bb-community-page .bb-profile-shell{background:var(--bg)!important;color:var(--text)!important}
+.bb-community-page button{border-color:var(--line)}
+.bb-community-page .bb-profile-stats strong,.bb-community-page .bb-profile-heading h2,.bb-community-page .community-post strong{color:var(--text)}
+.bb-community-page .bb-profile-tabs .active,.bb-community-page .bb-profile-heading p{color:var(--gold)!important}
+.light-mode{--bg:#f2f0e7;--panel:#fffdf5;--panel2:#eee9d9;--text:#1b1b1b;--muted:#68645b;--line:#d4cdbb;background:var(--bg)!important;color:var(--text)}
+.theme-customiser{margin:18px 0 4px;padding:17px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.theme-customiser h3{margin:0 0 5px;font-size:15px}
+.theme-customiser>label{display:block;margin:15px 0 7px;color:var(--gold);font-size:9px;font-weight:800;letter-spacing:1.3px}
+.theme-colour-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+.theme-colour-grid label{display:grid;gap:7px;color:var(--muted);font-size:9px;font-weight:800;letter-spacing:.7px}
+.theme-colour-grid input[type=color]{width:100%;height:44px;padding:4px;border:1px solid var(--line);border-radius:9px;background:var(--panel)}
+.theme-preview{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:15px;padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);color:var(--text)}
+.theme-preview strong{font-size:13px}.theme-preview span{font-size:10px;color:var(--muted);flex:1}
+.theme-preview button{padding:8px 10px;border:1px solid var(--gold);border-radius:8px;background:var(--gold);color:var(--bg);font-size:10px;font-weight:800}
+.theme-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.theme-actions button{flex:1;min-width:145px}
