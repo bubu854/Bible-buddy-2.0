@@ -15,7 +15,7 @@ let current={...presets["black-gold"]};
 function valid(c){return /^#[0-9a-f]{6}$/i.test(c||"");}
 function apply(theme){
  const c={...presets["black-gold"],...theme};
- const root=document.documentElement;
+ const root=document.documentElement,body=document.body;
  root.style.setProperty("--bg",c.bg);
  root.style.setProperty("--panel",c.surface);
  root.style.setProperty("--panel2",mix(c.surface,c.accent,.12));
@@ -24,6 +24,7 @@ function apply(theme){
  root.style.setProperty("--text",c.text);
  root.style.setProperty("--muted",mix(c.text,c.bg,.38));
  root.style.setProperty("--line",mix(c.surface,c.accent,.3));
+ if(body){for(const [name,value] of [["--bg",c.bg],["--panel",c.surface],["--panel2",mix(c.surface,c.accent,.12)],["--gold",c.accent],["--gold2",mix(c.accent,"#ffffff",.24)],["--text",c.text],["--muted",mix(c.text,c.bg,.38)],["--line",mix(c.surface,c.accent,.3)]])body.style.setProperty(name,value);}
  document.querySelector('meta[name="theme-color"]')?.setAttribute("content",c.bg);
  document.querySelectorAll('meta[name="apple-mobile-web-app-status-bar-style"]').forEach(x=>x.setAttribute("content","black-translucent"));
  current=c;
