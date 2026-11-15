@@ -159,4 +159,42 @@
 <div class="setting-row"><div><strong>Dark appearance</strong><small>Dark appearance</small></div><label class="switch"><input type="checkbox" id="darkToggle" checked><span></span></label></div></div><div class="panel"><h3>Your saved data</h3><p class="muted">Journal entries, prayer requests and saved verses stay on this device.</p><button id="exportData" class="secondary-btn">Export my notes</button></div></section>
 </main><nav class="bottom-nav"><button data-page="home" class="nav-item active"><span>⌂</span>Home</button><button data-page="bible" class="nav-item"><span>▤</span>Bible</button><button data-page="buddy" class="nav-item"><span>✧</span>Buddy</button><button data-page="recorder" class="nav-item"><span>◉</span>Record</button><button data-page="settings" class="nav-item"><span>⚙</span>Settings</button><button data-page="community" class="nav-item"><span>◎</span>Community</button></nav><div id="buddyTutorial" class="buddy-tutorial-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="buddyTutorialTitle"><div class="buddy-tutorial-card"><div class="buddy-tutorial-top"><span class="eyebrow">BIBLE BUDDY GUIDE</span><button type="button" id="buddyTutorialSkip" class="secondary-btn">Skip</button></div><div class="buddy-tutorial-progress" id="buddyTutorialProgress">1 / 4</div><h2 id="buddyTutorialTitle">Meet Buddy!</h2><p id="buddyTutorialText">I am your Bible study companion. Ask me questions about God, Jesus and the Bible.</p><div class="buddy-tutorial-actions"><button type="button" id="buddyTutorialBack" class="secondary-btn" hidden>Back</button><button type="button" id="buddyTutorialSpeak" class="secondary-btn">🔊 Hear again</button><button type="button" id="buddyTutorialNext" class="primary-btn">Next</button></div></div></div><div id="toast" class="toast" role="status"></div><script src="./script.js?v=62"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./community.js?v=12"></script><script src="./feature-pack.js"></script><script src="./feature-five.js"></script><script src="./category-home.js?v=74"></script><script src="./wallpaper-photo.js"></script><script src="./theme.js?v=2"></script><script>
 document.addEventListener("click",function(event){var button=event.target.closest("[data-page]");if(!button)return;var target=button.getAttribute("data-page");document.querySelectorAll(".page").forEach(function(section){section.classList.toggle("active",section.id===target+"-page")});document.querySelectorAll(".nav-item").forEach(function(item){item.classList.toggle("active",item.getAttribute("data-page")===target)});window.scrollTo(0,0)} ,true);
-</script></body></html>
+</script>
+<!-- Independent Buddy tutorial replay fallback -->
+<script>
+(function(){
+ function openBuddyGuide(){
+  var modal=document.getElementById('buddyTutorial');
+  if(!modal)return;
+  if(typeof window.showBuddyTutorial==='function'){
+   try{window.showBuddyTutorial();return;}catch(e){}
+  }
+  var language=document.getElementById('languageSelect');
+  var far=language&&/Faroese/i.test(language.value);
+  var steps=far?[
+   ['Hey! Eg eri Buddy.','Eg eri tín bíbliufelagi. Eg vísi tær runt í Bible Buddy. Tú kanst spyrja meg um Gud, Jesus og Bíbliuna.'],
+   ['Tosa við meg','Opna Buddy AI fyri at kjatta. Skriva ein spurning og trýst á Send.'],
+   ['Kanna bólkarnar','Bólkarnir eru Bible, Buddy AI, Bible Study, Bible Adventures, Prayer and Worship, Wallpapers, Creativity, Settings, Bible Games og Community.'],
+   ['Ger appina til tína','Í Settings kanst tú broyta mál, avatar, rødd, litir og áminningar.'],
+   ['Tú ert klár/ur!','Rundsýningin er liðug. Tú kanst altíð opna hana aftur í Settings.']
+  ]:[
+   ['Meet Buddy!','Hi! I am Buddy, your Bible study companion. I will show you around Bible Buddy. Ask me about God, Jesus and the Bible.'],
+   ['Talk with me','Open Buddy AI to chat. Type a question and tap Send.'],
+   ['Explore every category','Your categories are Bible, Buddy AI, Bible Study, Bible Adventures, Prayer and Worship, Wallpapers, Creativity, Settings, Bible Games and Community. Open a category to see its tools.'],
+   ['Make it yours','In Settings you can change the language, Buddy avatar and voice, app colours and reminders.'],
+   ['You are ready!','That is the tour. You can open it again any time from Settings.']
+  ];
+  var step=0;
+  var title=document.getElementById('buddyTutorialTitle'),body=document.getElementById('buddyTutorialText'),progress=document.getElementById('buddyTutorialProgress'),back=document.getElementById('buddyTutorialBack'),next=document.getElementById('buddyTutorialNext'),skip=document.getElementById('buddyTutorialSkip'),speak=document.getElementById('buddyTutorialSpeak');
+  function render(){title.textContent=steps[step][0];body.textContent=steps[step][1];progress.textContent=(step+1)+' / '+steps.length;back.hidden=step===0;next.textContent=step===steps.length-1?(far?'Liðugt':'Finish'):(far?'Næsta':'Next');}
+  function say(){if(!('speechSynthesis'in window))return;window.speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(steps[step][1]);u.lang=far?'fo-FO':'en-US';window.speechSynthesis.speak(u);}
+  back.onclick=function(){if(step>0){step--;render();say();}};
+  next.onclick=function(){if(step<steps.length-1){step++;render();say();}else modal.hidden=true;};
+  skip.onclick=function(){modal.hidden=true;};
+  speak.onclick=say;
+  render();modal.hidden=false;
+ }
+ document.addEventListener('click',function(event){var button=event.target&&event.target.closest?event.target.closest('#replayBuddyTutorial'):null;if(!button)return;event.preventDefault();event.stopImmediatePropagation();openBuddyGuide();},true);
+})();
+</script>
+</body></html>
