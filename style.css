@@ -226,3 +226,26 @@ canvas.bb-wallpaper{display:block;box-sizing:border-box;width:min(100%,340px)!im
 #community-tools[data-profile-theme="royal"] .bb-profile-cover{background:linear-gradient(120deg,#315da0,#111d3a)}
 #community-tools[data-profile-theme="violet"] .bb-profile-cover{background:linear-gradient(120deg,#57417e,#17203b)}
 #community-tools[data-profile-theme="gold"] .bb-profile-cover{background:linear-gradient(120deg,#69552c,#14243a)}
+
+
+/* Profile refresh: compact social profile with one settings control */
+.bb-profile-top{position:relative}
+.bb-profile-settings-btn{position:absolute;right:12px;top:12px;z-index:2;width:40px;height:40px;border-radius:50%;border:1px solid #d4b46b88;background:#081426eF;color:#f0d99b;font-size:20px;cursor:pointer;box-shadow:0 5px 16px #0005}
+.bb-profile-identity{padding-right:2px}
+.bb-profile-heading small{display:block;color:#d3dced;font-size:11px;margin-top:5px;line-height:1.4}
+.bb-profile-tabs{gap:0}
+.bb-profile-tabs button{flex:1;background:transparent;border:0;color:#9eacc0;font:inherit;padding:8px 4px;cursor:pointer}
+.bb-profile-tabs button.active{color:#e8ce8b;font-weight:800;border-bottom:2px solid #d4b46b}
+.bb-profile-tab-content{padding-top:4px}
+.bb-profile-settings{margin-top:16px;padding:15px;border:1px solid #d4b46b66;border-radius:16px;background:linear-gradient(145deg,#10213a,#081321);display:grid;gap:10px}
+.bb-profile-settings.hidden{display:none}
+.bb-profile-settings-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
+.bb-profile-settings-heading h3{margin:3px 0 0}
+.bb-profile-settings label{font-size:10px;letter-spacing:.08em;color:#e1c77f;font-weight:750}
+.bb-profile-settings input:not([type=checkbox]),.bb-profile-settings textarea,.bb-profile-settings select{width:100%;padding:11px;border-radius:10px;border:1px solid #31496d;background:#07101e;color:#f4f0e5;font:inherit}
+.bb-profile-settings input[type=checkbox]{width:auto}
+.bb-profile-extra-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:12px 0}
+.bb-profile-extra-grid>div{display:grid;gap:7px;padding:12px;border:1px solid #2b4263;border-radius:13px;background:#0a1728}
+.bb-profile-extra-grid strong{font-size:11px;color:#e8ce8b}
+.bb-profile-extra-grid span{font-size:11px;color:#aebbd0}
+@media(max-width:370px){.bb-profile-extra-grid{grid-template-columns:1fr}.bb-photo-button{font-size:10px;padding:8px}}
