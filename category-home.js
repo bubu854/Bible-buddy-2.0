@@ -9,7 +9,7 @@ const groups=[
 ["06","Wallpapers","Choose personal photos and create verse wallpapers",[]],
 ["07","Creativity","Make Bible verses and art your own",[]],
 ["08","Settings","Make Bible Buddy feel right for you",[]],
-["09","Bible Games","Play, learn and unlock new levels",[]]
+["09","Bible Games","Play, learn and unlock new levels",[]],\n["10","Community","Connect with Christian friends and share encouragement",[]]
 ];
 const classify=(title,page)=>{
  const t=title.toLowerCase();
@@ -20,7 +20,7 @@ const classify=(title,page)=>{
  if(/bible explainer|bible reading partner|ask buddy|voice conversation|buddy voice|buddy personality|translation helper/.test(t)||["buddy","translationhelper"].includes(page))return 1;
  if(/deep bible study|smart study|memorise scripture|sermon recorder|sermon intelligence|my journal|book-by-book explorer|questions notebook|comparison tool/.test(t)||["recorder","journal","deepstudy","memorise","smartnotes","bookexplorer","questionnotebook","biblecompare"].includes(page))return 2;
  if(/bible games|bible quiz|quiz battle|story mode|who am i|true or false|who said it|find the bible book|bible detective|kingdom builder|timeline challenge/.test(t)||["biblegames","quiz","quizbattle","stories","whoami","truefalse","whosaidit","findbook","detective","kingdom","timelinechallenge"].includes(page))return 8;
- if(/study groups|group challenge/.test(t)||["groupchallenge","groups"].includes(page))return 3;
+ if(/study groups|group challenge/.test(t)||["groupchallenge","groups"].includes(page))return 3;\n if(/bible buddy community|community|christian friends|prayer wall|for you|short videos|christian reels|friendships/.test(t)||["community","profile","reels","prayerwall","friendships"].includes(page))return 9;
  if(/ask buddy to pray|prayer|worship|daily reminder|verse of the day/.test(t)||["prayer","prayerjournal","worship","prayertimer"].includes(page))return 4;
  if(/wallpaper|saved verse|share a bible verse/.test(t))return 5;
  if(/language|reading speed|app preferences|settings/.test(t)||page==="settings")return 7;
