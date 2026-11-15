@@ -258,9 +258,18 @@ page("home");
  const escText=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
  function renderHighlights(){const el=document.querySelector("#highlightedVerses");if(!el)return;const items=readHighlights();el.innerHTML=items.length?items.map(x=>"<div class='saved-item'><strong>"+escText(x.ref)+"</strong><p>"+escText(x.text)+"</p><button class='delete-btn' data-unhighlight='"+encodeURIComponent(x.key)+"'>Remove highlight</button></div>").join(""):"No highlighted verses yet."}
  function translationLabel(t){return (t.languageName||t.languageEnglishName||"Unknown language")+" — "+(t.name||t.englishName||t.id)+" ("+t.id+")"}
+ const recentKey="bb_recent_bible_translations";
+ const recentIds=()=>{try{return JSON.parse(localStorage.getItem(recentKey)||"[]")}catch(e){return []}};
+ const rememberTranslation=id=>{const next=[id,...recentIds().filter(x=>x!==id)].slice(0,5);localStorage.setItem(recentKey,JSON.stringify(next))};
+ const FAROESE_LINK="https://biblian.fo/";
+ function addTranslationGroup(label,items){if(!items.length)return;const group=document.createElement("optgroup");group.label=label;items.forEach(t=>group.append(new Option(translationLabel(t),t.id)));language.append(group)}
+ function renderFaroeseFallback(){area.innerHTML="<h2>Føroyska Bíblian</h2><p>The Faroese Bible is not currently included in the connected translation catalogue. You can read the Faroese Bible from the Faroese Bible Society here:</p><p><a class=\"primary-btn\" href=\""+FAROESE_LINK+"\" target=\"_blank\" rel=\"noopener\">Open Føroyska Bíblian</a></p><p class=\"small-note\">Bible Buddy keeps your English Bible and other available translations in the app. The Faroese Bible Society provides the Faroese edition.</p>"};
  function updateChapters(){chapter.innerHTML="";const selected=booksForTranslation.find(x=>x.id===book.value);if(!selected)return;for(let n=selected.firstChapterNumber||1;n<=(selected.lastChapterNumber||selected.numberOfChapters||1);n++)chapter.add(new Option("Chapter "+n,n))}
  async function loadBooks(){
-  const id=language.value;currentTranslation=translations.find(t=>t.id===id);if(!currentTranslation)return;
+  const id=language.value;
+  if(id==="__FAROESE_OFFICIAL__"){currentTranslation=null;renderFaroeseFallback();return}
+  currentTranslation=translations.find(t=>t.id===id);if(!currentTranslation)return;
+  rememberTranslation(id);
   area.innerHTML="<p class='muted'>Loading books for "+escText(currentTranslation.name||id)+"…</p>";
   try{
    const r=await fetch(api+"/"+encodeURIComponent(id)+"/books.json");if(!r.ok)throw new Error("Books unavailable");
@@ -304,9 +313,17 @@ page("home");
    const data=await r.json();translations=Array.isArray(data.translations)?data.translations:[];
    if(!translations.length)throw new Error("No translations returned");
    language.innerHTML="";
-   translations.slice().sort((x,y)=>(x.languageName||"").localeCompare(y.languageName||"")||(x.name||"").localeCompare(y.name||"")).forEach(t=>language.add(new Option(translationLabel(t),t.id)));
-   const preferred=translations.find(t=>t.id==="WEB")||translations.find(t=>(t.language||"").toLowerCase()==="eng"&&/world english bible/i.test(t.name||""))||translations.find(t=>(t.language||"").toLowerCase()==="eng");
-   language.value=preferred?.id||translations[0].id;
+   const byName=(x,y)=>(x.name||x.englishName||x.id).localeCompare(y.name||y.englishName||y.id);
+   const english=translations.filter(t=>(t.language||"").toLowerCase()==="eng").sort((x,y)=>(x.id==="WEB"?-1:y.id==="WEB"?1:byName(x,y)));
+   const recent=recentIds().map(id=>translations.find(t=>t.id===id)).filter(Boolean).filter(t=>!["eng","fao"].includes((t.language||"").toLowerCase()));
+   const majorCodes=["spa","fra","fre","deu","ger","por","rus","ara","zho","chi","hin","jpn","kor","swa","ind","ita","nld","tur","urd","ben","tam","tha","vie"];
+   const major=translations.filter(t=>majorCodes.includes((t.language||"").toLowerCase())&&!recent.some(r=>r.id===t.id)).sort((x,y)=>(x.languageName||"").localeCompare(y.languageName||"")||byName(x,y));
+   const fao=translations.filter(t=>(t.language||"").toLowerCase()==="fao").sort(byName);
+   const other=translations.filter(t=>!english.some(x=>x.id===t.id)&&!recent.some(x=>x.id===t.id)&&!major.some(x=>x.id===t.id)&&!fao.some(x=>x.id===t.id)).sort((x,y)=>(x.languageName||"").localeCompare(y.languageName||"")||byName(x,y));
+   addTranslationGroup("English",english);addTranslationGroup("Recent translations",recent);addTranslationGroup("Major languages",major);
+   if(fao.length)addTranslationGroup("Faroese — Føroyskt",fao);else{const group=document.createElement("optgroup");group.label="Faroese — Føroyskt";group.append(new Option("Føroyska Bíblian (Faroese Bible Society)","__FAROESE_OFFICIAL__"));language.append(group)}
+   addTranslationGroup("All other languages",other);
+   const preferred=english.find(t=>t.id==="WEB")||english[0];language.value=preferred?.id||translations[0].id;
    await loadBooks();
   }catch(e){area.innerHTML="<p>Could not load the Bible translation catalogue. Check your connection and reload the page.</p>"}
  }
