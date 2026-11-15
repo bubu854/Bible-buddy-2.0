@@ -631,28 +631,48 @@ page("home");
  });
  renderGroups();
 
- // First-visit Buddy tutorial; can also be replayed from Settings.
- const buddyTutorialSteps = [
- ["Meet Buddy!","I'm your Bible study companion. Ask me about God, Jesus and the Bible.","Hey! Eg eri tín bíbliufelagi. Spyr meg um Gud, Jesus og Bíbliuna."],
- ["Ask anything","Type a question in the chat, or use the microphone option when available.","Skriva ein spurning í kjattið, ella brúka mikrofonina, tá hon er tøk."],
- ["Explore Buddy tools","Try Bible explanations, faith conversations, memory practice and deep Bible study.","Royn bíbliufrágreiðingar, samrøður, minnivenjing og djúpan bíbliulestur."],
- ["You're ready!","You can replay this guide anytime from Settings → Buddy tutorial.","Tú ert klár/ur! Sí vegleiðingina aftur undir Stillingar → Buddy-vegleiðing."]
+ // Buddy tutorial: first visit, spoken narration, all home categories, replay from Settings.
+ const buddyCategories=["Bible","Buddy AI","Bible Study","Bible Adventures","Prayer and Worship","Wallpapers","Creativity","Settings","Bible Games","Community"];
+ const buddyTutorialSteps=[
+  {title:"Meet Buddy!",body:"Hi! I'm Buddy, your Bible study companion. I'll show you around Bible Buddy. You can ask me questions about God, Jesus and the Bible.",foTitle:"Hey! Eg eri Buddy.",foBody:"Eg eri tín bíbliufelagi. Eg vísi tær runt í Bible Buddy. Tú kanst spyrja meg um Gud, Jesus og Bíbliuna."},
+  {title:"Talk with me",body:"Open Buddy AI to chat. Type a question and tap Send. You can also use the microphone or listen to my answers when your device supports speech.",foTitle:"Tosa við meg",foBody:"Opna Buddy AI fyri at kjatta. Skriva ein spurning og trýst á Send. Tú kanst eisini brúka mikrofonina ella lurta eftir svarunum, tá telefonin stuðlar talu."},
+  {title:"Explore every category",body:"On Home, open a category to see its tools. Your categories are: "+buddyCategories.join(", ")+". Each category has different ways to read, learn, create, pray, play and connect.",foTitle:"Kanna allar bólkarnar",foBody:"Á Heim kanst tú lata ein bólk upp fyri at síggja amboðini. Bólkarnir eru: "+buddyCategories.join(", ")+". Hvør bólkur hevur ymisk amboð til lestur, læring, skapan, bøn, spøl og felagsskap."},
+  {title:"Make it yours",body:"Open Settings to change the app language, choose Buddy's avatar and voice, customise colours, set reminders and replay this tutorial.",foTitle:"Ger appina til tína",foBody:"Opna Stillingar fyri at broyta app-mál, velja avatar og rødd hjá Buddy, tillaga litir, seta áminningar og síggja hesa vegleiðingina aftur."},
+  {title:"You're ready!",body:"That's the tour! Tap Finish to start exploring. You can replay this tutorial any time from Settings.",foTitle:"Tú ert klár/ur!",foBody:"So er rundsýningin liðug! Trýst á Liðugt fyri at byrja. Tú kanst altíð síggja vegleiðingina aftur undir Stillingar."}
  ];
- let buddyTutorialStep = 0;
- function renderBuddyTutorialStep(){
-  const step=buddyTutorialSteps[buddyTutorialStep], far=fo();
-  $("#buddyTutorialProgress").textContent=(buddyTutorialStep+1)+" / "+buddyTutorialSteps.length;
-  $("#buddyTutorialTitle").textContent=far?step[2]:step[0];
-  $("#buddyTutorialText").textContent=far?step[2]:step[1];
-  $("#buddyTutorialBack").hidden=buddyTutorialStep===0;
-  $("#buddyTutorialNext").textContent=buddyTutorialStep===buddyTutorialSteps.length-1?(far?"Latið aftur":"Finish"):(far?"Næsta":"Next");
+ let buddyTutorialStep=0;
+ function buddyTutorialText(){
+  const step=buddyTutorialSteps[buddyTutorialStep],far=fo();
+  return {title:far?step.foTitle:step.title,body:far?step.foBody:step.body,lang:far?"fo-FO":"en-US"};
  }
- function showBuddyTutorial(){const m=$("#buddyTutorial");if(!m)return;buddyTutorialStep=0;renderBuddyTutorialStep();m.hidden=false;}
- function closeBuddyTutorial(){const m=$("#buddyTutorial");if(m)m.hidden=true;store.set("buddy_tutorial_seen",true);}
+ function speakBuddyTutorial(){
+  const data=buddyTutorialText();
+  if(!("speechSynthesis" in window)){toast(fallbackTutorialSpeech());return}
+  window.speechSynthesis.cancel();
+  const utterance=new SpeechSynthesisUtterance(data.body);
+  utterance.lang=data.lang;utterance.rate=0.92;
+  const voices=window.speechSynthesis.getVoices();
+  const voice=voices.find(v=>data.lang==="fo-FO"?/^fo(-|$)/i.test(v.lang):/^en(-|$)/i.test(v.lang));
+  if(voice)utterance.voice=voice;
+  window.speechSynthesis.speak(utterance);
+ }
+ function fallbackTutorialSpeech(){return fo()?"Lurta er ikki tøkt í hesum kaga.":"Speech is not available in this browser."}
+ function renderBuddyTutorialStep(){
+  const data=buddyTutorialText();
+  $("#buddyTutorialProgress").textContent=(buddyTutorialStep+1)+" / "+buddyTutorialSteps.length;
+  $("#buddyTutorialTitle").textContent=data.title;
+  $("#buddyTutorialText").textContent=data.body;
+  $("#buddyTutorialBack").hidden=buddyTutorialStep===0;
+  $("#buddyTutorialNext").textContent=buddyTutorialStep===buddyTutorialSteps.length-1?(fo()?"Liðugt":"Finish"):(fo()?"Næsta":"Next");
+ }
+ function showBuddyTutorial(){const modal=$("#buddyTutorial");if(!modal)return;buddyTutorialStep=0;renderBuddyTutorialStep();modal.hidden=false;}
+ function closeBuddyTutorial(){const modal=$("#buddyTutorial");if(modal)modal.hidden=true;store.set("buddy_tutorial_seen",true);if("speechSynthesis" in window)window.speechSynthesis.cancel();}
  $("#buddyTutorialSkip")?.addEventListener("click",closeBuddyTutorial);
- $("#buddyTutorialBack")?.addEventListener("click",()=>{if(buddyTutorialStep>0){buddyTutorialStep--;renderBuddyTutorialStep();}});
- $("#buddyTutorialNext")?.addEventListener("click",()=>{if(buddyTutorialStep<buddyTutorialSteps.length-1){buddyTutorialStep++;renderBuddyTutorialStep();}else closeBuddyTutorial();});
+ $("#buddyTutorialBack")?.addEventListener("click",()=>{if(buddyTutorialStep>0){buddyTutorialStep--;renderBuddyTutorialStep();speakBuddyTutorial();}});
+ $("#buddyTutorialNext")?.addEventListener("click",()=>{if(buddyTutorialStep<buddyTutorialSteps.length-1){buddyTutorialStep++;renderBuddyTutorialStep();speakBuddyTutorial();}else closeBuddyTutorial();});
+ $("#buddyTutorialSpeak")?.addEventListener("click",speakBuddyTutorial);
  $("#replayBuddyTutorial")?.addEventListener("click",showBuddyTutorial);
  if(!store.get("buddy_tutorial_seen",false))showBuddyTutorial();
+
  
 })();
