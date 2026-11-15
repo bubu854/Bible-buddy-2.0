@@ -47,7 +47,7 @@ This document records requested features and groups them into the app's expandab
 - **Prayer wall:** share prayer requests and respond with supportive messages such as “I'm praying for you.”
 - Community feed, stories, study groups, comments, likes and group challenges.
 
-## More ideas to consider
+## Newly added feature starters (2026-11-15)\n- **Bible Fact Checker:** interactive starter set of common claims with Scripture references and context.\n- **Bible World Explorer:** selectable biblical places with short descriptions and references.\n- **Original Language Explorer:** introductory Hebrew and Greek word entries with context notes.\n- **Christian Life Coach:** selectable everyday situations with practical, Bible-based reflection and safety guidance.\n- **Offline Bible Buddy:** saves the app shell and local feature scripts in browser cache; it does not yet bundle full Bible translations for offline reading.\n\n## More ideas to consider
 
 ### Profile and identity
 - Faith journey timeline with milestones the member chooses to share.
