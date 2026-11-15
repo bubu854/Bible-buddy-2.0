@@ -19,6 +19,7 @@ function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",
 const prompts={ "Explain John 3:16":"John 3:16 is a well-known summary of God's love: it says God gave his Son so that people who believe may have eternal life. Read the whole passage around the verse to understand its context.", "Who was Moses?":"Moses was a leader chosen by God to lead the Israelites out of slavery in Egypt. His story is told mainly in Exodus, Leviticus, Numbers and Deuteronomy.", "Help me pray":"You could begin simply: “God, thank you for being with me. Please guide me today, help me understand your Word, and show me how to love others. Amen.”" };
 let buddyLastSpeech="";
 let buddyCurrentUtterance=null;
+let buddyCurrentMessage=null;
 function renderBuddyWords(container,text){
  container.replaceChildren();
  const fragment=document.createDocumentFragment();
@@ -44,13 +45,11 @@ function speakBuddy(text){
   if(event.name!=="word")return;
   const activeStart=Number(event.charIndex)||0;
   document.querySelectorAll(".buddy-spoken-word.is-speaking").forEach(el=>el.classList.remove("is-speaking"));
-  const message=document.querySelectorAll("#chatMessages .buddy-message");
-  message.forEach(box=>{
-   const raw=box.dataset.buddySpeech||"";
-   if(!raw)return;
+  const box=buddyCurrentMessage;
+  if(box){
    const span=[...box.querySelectorAll(".buddy-spoken-word")].find(el=>Number(el.dataset.start)<=activeStart&&Number(el.dataset.start)+el.textContent.length>activeStart);
    if(span)span.classList.add("is-speaking");
-  });
+  }
  };
  const voices=window.speechSynthesis.getVoices();
  const selectedVoice=store.get("buddy_voice","");
@@ -159,6 +158,7 @@ async function sendBuddy(t,mode="chat"){
   refLine.textContent=refs.length?(fo?"Bíbliu-tilvísingar: ":"Bible references: ")+refs.join(", "):(fo?"Eingin beinleiðis bíbliu-tilvísing nevnd.":"No specific Bible passage cited.");
   typing.append(refLine);
   buddyLastSpeech=answer;
+  buddyCurrentMessage=typing;
   // Automatically read every answer aloud; the Speak button remains available.
   speakBuddy(answer);
  }catch(error){
