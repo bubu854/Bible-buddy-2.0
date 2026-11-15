@@ -205,3 +205,24 @@ body.bb-photo-background{background:#07101e!important;background-image:linear-gr
 canvas.bb-wallpaper{display:block;box-sizing:border-box;width:min(100%,340px)!important;max-width:340px!important;height:auto!important;min-height:0!important;max-height:none!important;aspect-ratio:9/16;object-fit:fill;margin:14px auto;padding:0;border:1px solid #d4b46b;border-radius:14px;background:#07101e;box-shadow:0 8px 24px #0005;overflow:hidden}
 
 .study-topic-group{margin-top:14px;padding-top:11px;border-top:1px solid var(--line)}.study-topic-group>strong{display:block;color:var(--gold2);font-size:12px;margin-bottom:2px}.study-topic-group .prompt-chips{flex-wrap:wrap;overflow:visible;padding:8px 0 2px}.study-topic-group .prompt-chip{white-space:normal;text-align:left;line-height:1.35}
+
+
+/* Bible Buddy social profile */
+.bb-profile-top{position:relative;overflow:hidden;border:1px solid #31496d;border-radius:18px;padding:0 15px 16px;background:linear-gradient(145deg,#102543,#081321)}
+.bb-profile-cover{height:88px;margin:0 -15px;background:radial-gradient(circle at 80% 15%,#d4b46b55,transparent 28%),linear-gradient(120deg,#244b7d,#101d32 70%);border-bottom:1px solid #d4b46b44}
+.bb-profile-identity{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin-top:-35px}
+.bb-profile-avatar-wrap{position:relative;width:82px;height:82px;flex:0 0 82px;border:3px solid #0b1728;border-radius:50%;background:linear-gradient(135deg,#345d91,#14243d);display:grid;place-items:center;overflow:hidden;color:#e7cf91;font-size:27px}
+.bb-profile-avatar{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+.bb-profile-heading{padding-top:34px;min-width:0;flex:1}.bb-profile-heading h2{font-size:18px;margin:0}.bb-profile-heading p{font-size:12px;color:#a9b9d0;margin:4px 0}
+.bb-photo-button{margin-top:35px;padding:9px 11px;border-radius:11px;background:#1a3558;border:1px solid #49658a;color:#f2dfad;font-size:11px;font-weight:700;cursor:pointer}
+.bb-profile-stats{display:flex;justify-content:space-around;text-align:center;margin:16px 0 9px}.bb-profile-stats div{display:grid;gap:3px}.bb-profile-stats strong{font-size:17px}.bb-profile-stats span{font-size:10px;color:#aab8ca}
+.bb-profile-actions{display:flex;gap:8px}.bb-profile-actions button{flex:1;padding:9px}
+.bb-stories-strip{display:flex;gap:18px;overflow:auto;padding:17px 3px 13px}.bb-stories-strip>div{display:grid;justify-items:center;gap:5px;min-width:55px}.bb-stories-strip small{font-size:10px;color:#aebbd0}.bb-story-add,.bb-story-ring{width:53px;height:53px;border-radius:50%;display:grid;place-items:center;border:2px solid #d4b46b;background:#142947;color:#f0d58d;font-size:20px}.bb-story-add{border-style:dashed;font-size:24px}
+.bb-profile-tabs{display:flex;justify-content:space-around;border-top:1px solid #263b58;border-bottom:1px solid #263b58;padding:12px 0;color:#9eacc0;font-size:12px}.bb-profile-tabs .active{color:#e8ce8b;border-bottom:2px solid #d4b46b;padding-bottom:8px;margin-bottom:-14px}
+.bb-pinned-heading{font-size:12px;font-weight:800;margin:15px 0 8px;color:#e3ca8c}.bb-pinned-preview{padding:13px;border:1px solid #2b4263;border-radius:13px;background:#0a1728;color:#aebbd0;font-size:12px}
+.bb-fav-verse{display:grid;gap:7px;margin:13px 0;padding:15px;border-radius:14px;background:linear-gradient(120deg,#1a3558,#0c1a2e);border:1px solid #38577e}.bb-fav-verse span{font-size:9px;letter-spacing:.16em;color:#d9bd7d}.bb-fav-verse strong{font-family:Georgia,serif;font-size:15px}
+.bb-achievements{padding:13px 0}.bb-achievements h3{font-size:14px}.bb-achievements>div{display:flex;gap:7px;flex-wrap:wrap}.bb-achievements span{padding:7px 9px;border-radius:20px;background:#172c48;border:1px solid #334c70;color:#d9c48f;font-size:10px}
+.bb-profile-divider{border:0;border-top:1px solid #2a3e5b;margin:16px 0}
+#community-tools[data-profile-theme="royal"] .bb-profile-cover{background:linear-gradient(120deg,#315da0,#111d3a)}
+#community-tools[data-profile-theme="violet"] .bb-profile-cover{background:linear-gradient(120deg,#57417e,#17203b)}
+#community-tools[data-profile-theme="gold"] .bb-profile-cover{background:linear-gradient(120deg,#69552c,#14243a)}
