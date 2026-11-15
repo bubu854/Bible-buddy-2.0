@@ -23,10 +23,10 @@ let buddyCurrentMessage=null;
 function renderBuddyWords(container,text){
  container.replaceChildren();
  const fragment=document.createDocumentFragment();
- const parts=String(text).match(/\\s+|[^\\s]+/g)||[];
+ const parts=String(text).match(/\s+|[^\s]+/g)||[];
  let offset=0;
  for(const part of parts){
-  if(/^\\s+$/.test(part)){fragment.append(document.createTextNode(part));offset+=part.length;continue;}
+  if(/^\s+$/.test(part)){fragment.append(document.createTextNode(part));offset+=part.length;continue;}
   const word=document.createElement("span");word.className="buddy-spoken-word";word.dataset.start=String(offset);word.textContent=part;word.title="Tap to hear from this word";
   fragment.append(word);offset+=part.length;
  }
