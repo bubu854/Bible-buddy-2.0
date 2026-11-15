@@ -584,26 +584,41 @@ page("home");
   page("buddy");sendBuddy(prompt,"deep-study");
  });
 
- // Voice conversation: browser speech-to-text feeds Buddy; spoken answers use existing speech synthesis.
+ // Voice conversation: speak a turn, Buddy sends the transcript to AI and reads the reply aloud.
  let voiceRec=null,voiceActive=false;
- $("#buddyListenButton")?.addEventListener("click",()=>{
+ const voiceButton=$("#buddyListenButton"),voiceStatus=$("#buddyLiveVoiceStatus");
+ function setVoiceButton(active){
+  if(!voiceButton)return;
+  voiceButton.innerHTML=active?"■ Stop listening":"🎙 <span>Talk to Buddy</span>";
+  voiceButton.setAttribute("aria-label",active?"Stop listening":"Start speaking to Buddy");
+  voiceButton.classList.toggle("voice-listening",active);
+  if(voiceStatus)voiceStatus.textContent=active
+   ?say("Listening… speak naturally. Buddy will answer out loud when you finish.","Lurti… tosa natúrliga. Buddy svarar við rødd, tá tú ert liðug/ur.")
+   :say("Tap the gold microphone, speak naturally, and Buddy will answer out loud. No typing needed when voice recognition is supported.","Trýst á gullmikrofonina, tosa natúrliga, og Buddy svarar við rødd. Tú nýtist ikki at skriva, tá røddarkennarin er tøkur.");
+ }
+ voiceButton?.addEventListener("click",()=>{
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  // iPhone Safari does not provide the Web Speech recognition API. Open the
-  // keyboard so the user's built-in iOS Dictation microphone can be used.
   if(!SR){
-   const input=$("#chatInput");
-   if(input){input.focus();input.placeholder=say("Tap the microphone on your iPhone keyboard, speak, then tap Send.","Trýst á mikrofonina á knappaborðinum, tosa, og trýst síðani Send.");}
-   toast(say("Use the microphone on your iPhone keyboard. Buddy will speak his reply aloud.","Brúka mikrofonina á iPhone-knappaborðinum. Buddy fer at svara við rødd."));
+   if(voiceStatus)voiceStatus.textContent=say("This version of iPhone Safari does not expose voice recognition to the app. Tap the text field, use the microphone on the iPhone keyboard to dictate, then tap Send. Buddy will still speak the answer aloud.","Hesin Safari-kagin á iPhone hevur ikki røddarkennara tøkan fyri appina. Trýst á tekstteigin, brúka mikrofonina á iPhone-knappaborðinum og trýst síðani Send. Buddy lesur framvegis svarið hart.");
+   $("#chatInput")?.focus();
+   toast(say("iPhone Safari requires keyboard dictation here.","Á iPhone Safari mást tú brúka diktering á knappaborðinum."));
    return;
   }
-  if(voiceActive){voiceRec?.stop();voiceActive=false;$("#buddyListenButton").textContent="🎙";return}
+  if(voiceActive){voiceRec?.stop();voiceActive=false;setVoiceButton(false);return}
   voiceRec=new SR();voiceRec.lang=fo()?"fo-FO":"en-US";voiceRec.interimResults=false;voiceRec.continuous=false;
-  voiceRec.onstart=()=>{voiceActive=true;$("#buddyListenButton").textContent="■";$("#chatInput").placeholder=say("Listening…","Lurti…")};
-  voiceRec.onresult=e=>{const spoken=e.results?.[0]?.[0]?.transcript||"";if(spoken){$("#chatInput").value=spoken;sendBuddy(spoken)}};
-  voiceRec.onerror=e=>{toast(say("Voice input stopped: ","Røddarinnlesing steðgaði: ")+e.error)};
-  voiceRec.onend=()=>{voiceActive=false;$("#buddyListenButton").textContent="🎙";$("#chatInput").placeholder=say("Write a Bible question…","Skriva ein spurning um Bíbliuna…")};
-  try{voiceRec.start()}catch(e){toast(say("Could not start the microphone.","Kundi ikki tendra mikrofonina."))}
+  voiceRec.onstart=()=>{voiceActive=true;setVoiceButton(true)};
+  voiceRec.onresult=e=>{
+   const spoken=e.results?.[0]?.[0]?.transcript||"";
+   if(spoken){if($("#chatInput"))$("#chatInput").value="";sendBuddy(spoken);}
+  };
+  voiceRec.onerror=e=>{
+   voiceActive=false;setVoiceButton(false);
+   if(voiceStatus)voiceStatus.textContent=say("Microphone error: ","Mikrofonfeilur: ")+e.error+". Check Safari microphone permission and try again.";
+  };
+  voiceRec.onend=()=>{voiceActive=false;setVoiceButton(false)};
+  try{voiceRec.start()}catch(e){voiceActive=false;setVoiceButton(false);toast(say("Could not start the microphone. Check Safari permissions.","Kundi ikki tendra mikrofonina. Kanna loyvini í Safari."))}
  });
+ // Typing remains available as an optional alternative.
 
  // Sermon intelligence: strengthen the existing transcript breakdown without claiming audio-file transcription.
  const breakdown=$("#breakdownTranscript");
