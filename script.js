@@ -532,6 +532,14 @@ page("home");
   const verse=e.target.closest(".bible-verse");if(!verse)return;
   const heading=$("#readingArea h2")?.textContent||"",ref=heading.split(" · ")[0]+" "+verse.dataset.verse;renderRelated(ref);
  });
+ // Recommended study topics fill the study field.
+ $("#deepstudy-page")?.addEventListener("click",e=>{
+  const topic=e.target.closest("[data-study-topic]");if(!topic)return;
+  $("#deepStudyPassage").value=topic.dataset.studyTopic;
+  $("#deepStudyFocus").value="Full study";
+  $("#deepStudyPassage").focus();
+  toast(fo()?"Evnið er valt. Trýst á Granska við Buddy.":"Topic selected. Press Study with Buddy to begin.");
+ });
  // Deep Bible study prompt
  $("#startDeepStudy")?.addEventListener("click",()=>{
   const passage=$("#deepStudyPassage").value.trim();if(!passage){toast(say("Enter a passage or topic first.","Skriva fyrst eitt bíbliuvers ella evni."));return}
