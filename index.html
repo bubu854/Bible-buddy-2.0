@@ -70,27 +70,34 @@
 <div id="community-tools" class="panel hidden">
 <div class="bb-profile-top">
   <div class="bb-profile-cover"></div>
+  <button class="bb-profile-settings-btn" id="communityProfileSettingsToggle" type="button" aria-label="Profile settings" aria-expanded="false" title="Profile settings">⚙</button>
   <div class="bb-profile-identity">
     <div class="bb-profile-avatar-wrap"><img id="communityAvatarPreview" class="bb-profile-avatar" alt="Your profile picture" src="" /><span id="communityAvatarFallback">✦</span></div>
-    <div class="bb-profile-heading"><h2 id="communityProfileName">Your profile</h2><p id="communityProfileHandle">@yourusername</p></div>
+    <div class="bb-profile-heading"><h2 id="communityProfileName">Your profile</h2><p id="communityProfileHandle">@yourusername</p><small id="communityProfileBio">Walking with Jesus ✝️</small></div>
     <label class="bb-photo-button" for="communityAvatarFile">＋ Add profile photo</label>
     <input id="communityAvatarFile" type="file" accept="image/*" hidden />
   </div>
   <div class="bb-profile-stats"><div><strong id="communityPostCount">0</strong><span>Posts</span></div><div><strong id="communityFollowerCount">0</strong><span>Followers</span></div><div><strong id="communityFollowingCount">0</strong><span>Following</span></div></div>
-  <p id="communityWelcome" class="muted"></p>
-  <div class="bb-profile-actions"><button class="secondary-btn" type="button" onclick="document.getElementById('communityDisplayName').focus()">Edit profile</button><button class="secondary-btn" type="button" id="communityShareProfile">Share profile</button></div>
+  <div class="bb-profile-actions"><button class="secondary-btn" type="button" id="communityEditProfile">Edit profile</button><button class="secondary-btn" type="button" id="communityShareProfile">Share profile</button></div>
 </div>
-<div class="bb-stories-strip"><div><button class="bb-story-add" id="communityAddStory" type="button">＋</button><small>Add story</small></div><div><span class="bb-story-ring">✝</span><small>Faith</small></div><div><span class="bb-story-ring">♡</span><small>Prayer</small></div><div><span class="bb-story-ring">✦</span><small>Verses</small></div></div>
-<div class="bb-profile-tabs"><span class="active">▦ Posts</span><span>▶ Videos</span><span>▣ Saved</span></div>
-<div class="bb-pinned-heading">📌 Pinned post</div><div id="communityPinnedPreview" class="bb-pinned-preview">Your pinned post will appear here.</div>
-<div class="bb-fav-verse"><span>FAVOURITE BIBLE VERSE</span><strong id="communityFavoriteVersePreview">Add a verse that inspires you</strong></div>
-<div class="bb-achievements"><h3>Achievements</h3><div><span>✦ First steps</span><span>📖 Bible reader</span><span>🏆 Quiz star</span></div></div>
-<label for="communityProfileTheme">PROFILE THEME</label><select id="communityProfileTheme"><option value="navy">Midnight navy</option><option value="royal">Royal blue</option><option value="violet">Violet</option><option value="gold">Navy & gold</option></select>
-<hr class="bb-profile-divider">
-<h3>Edit profile details</h3><label for="communityUsername">USERNAME</label><input id="communityUsername" maxlength="24" placeholder="your_username"><label for="communityDisplayName">DISPLAY NAME</label><input id="communityDisplayName" maxlength="50" placeholder="Display name"><label for="communityBio">BIO</label><textarea id="communityBio" rows="2" maxlength="180" placeholder="A little about you"></textarea><label for="communityFavoriteVerse">FAVOURITE BIBLE VERSE</label><input id="communityFavoriteVerse" maxlength="100" placeholder="e.g. Romans 8:28"><label><input id="communityPublic" type="checkbox"> Make my profile public so people can find you</label><button id="communitySaveProfile" class="primary-btn" type="button">Save profile</button><p class="small-note">Your email is never shown on your public profile. Your profile photo is saved on this device for now.</p>
-<div class="bb-story-upload hidden" id="communityStoryPreview"></div>
-<input id="communityStoryFile" type="file" accept="image/*" hidden>
-</div><label for="communityUsername">USERNAME</label><input id="communityUsername" maxlength="24" placeholder="your_username"><label for="communityDisplayName">DISPLAY NAME</label><input id="communityDisplayName" maxlength="50" placeholder="Display name"><label for="communityBio">BIO</label><textarea id="communityBio" rows="2" maxlength="180" placeholder="A little about you"></textarea><label><input id="communityPublic" type="checkbox"> Make my profile public so people can find you</label><button id="communitySaveProfile" class="primary-btn" type="button">Save profile</button><p class="small-note">Your email is never shown on your public profile.</p></div>
+<div class="bb-stories-strip"><div><button class="bb-story-add" id="communityAddStory" type="button">＋</button><small>Add story</small></div><div><span class="bb-story-ring">✝</span><small>Faith</small></div><div><span class="bb-story-ring">♡</span><small>Prayer</small></div><div><span class="bb-story-ring">✦</span><small>Verses</small></div><div><span class="bb-story-ring">🎵</span><small>Worship</small></div></div>
+<div class="bb-profile-tabs"><button class="active" type="button" data-profile-tab="posts">▦ Posts</button><button type="button" data-profile-tab="videos">▶ Videos</button><button type="button" data-profile-tab="saved">▣ Saved</button></div>
+<div class="bb-profile-tab-content" id="communityProfilePosts"><div class="bb-pinned-heading">📌 Pinned post</div><div id="communityPinnedPreview" class="bb-pinned-preview">Your pinned post will appear here.</div><div class="bb-fav-verse"><span>FAVOURITE BIBLE VERSE</span><strong id="communityFavoriteVersePreview">Add a verse that inspires you</strong></div><div class="bb-achievements"><h3>Faith badges</h3><div><span>✦ First steps</span><span>📖 Bible reader</span><span>🏆 Quiz star</span></div></div><div class="bb-profile-extra-grid"><div><strong>🔥 Reading streak</strong><span id="communityReadingStreak">Start your streak</span></div><div><strong>🎵 Favourite worship</strong><span id="communityWorshipSong">Choose your song</span></div></div></div>
+<div class="bb-profile-tab-content hidden" id="communityProfileVideos"><div class="bb-pinned-preview">Your Christian short videos will appear here.</div></div>
+<div class="bb-profile-tab-content hidden" id="communityProfileSaved"><div class="bb-pinned-preview">Your saved posts will appear here.</div></div>
+<div class="bb-profile-settings hidden" id="communityProfileSettings">
+  <div class="bb-profile-settings-heading"><div><span class="eyebrow">YOUR PROFILE</span><h3>Profile settings</h3></div><button type="button" class="secondary-btn" id="communityProfileSettingsClose">Close</button></div>
+  <label for="communityProfileTheme">PROFILE THEME</label><select id="communityProfileTheme"><option value="navy">Midnight navy</option><option value="royal">Royal blue</option><option value="violet">Violet</option><option value="gold">Navy & gold</option></select>
+  <label for="communityUsername">USERNAME</label><input id="communityUsername" maxlength="24" placeholder="your_username">
+  <label for="communityDisplayName">DISPLAY NAME</label><input id="communityDisplayName" maxlength="50" placeholder="Display name">
+  <label for="communityBio">BIO</label><textarea id="communityBio" rows="2" maxlength="180" placeholder="A little about you"></textarea>
+  <label for="communityFavoriteVerse">FAVOURITE BIBLE VERSE</label><input id="communityFavoriteVerse" maxlength="100" placeholder="e.g. Romans 8:28">
+  <label><input id="communityPublic" type="checkbox"> Make my profile public so people can find you</label>
+  <button id="communitySaveProfile" class="primary-btn" type="button">Save profile</button>
+  <p class="small-note">Your email is never shown on your public profile. Your profile photo is saved on this device for now.</p>
+</div>
+<div class="bb-story-upload hidden" id="communityStoryPreview"></div><input id="communityStoryFile" type="file" accept="image/*" hidden>
+</div>
 <div id="community-feed-panel" class="panel hidden"><h3>Share a Bible verse</h3><label for="communityPostVerse">BIBLE REFERENCE</label><input id="communityPostVerse" placeholder="e.g. Psalm 23:1"><label for="communityPostBody">MESSAGE</label><textarea id="communityPostBody" rows="3" maxlength="1000" placeholder="What would you like to share?"></textarea><button id="communityPublish" class="primary-btn" type="button">Share post</button><div class="record-controls"><h3>Community feed</h3><button id="communityRefresh" class="secondary-btn" type="button">Refresh</button></div><div id="communityFeed"></div></div>
 <div id="community-follow-panel" class="panel hidden"><h3>Find people</h3><div class="panel"><h3>Friend requests</h3><div id="communityFriendRequests"></div></div><p class="small-note">Only public profiles appear in search.</p><label for="communityFindUsername">USERNAME</label><input id="communityFindUsername" placeholder="Search exact username"><button id="communityFind" class="secondary-btn" type="button">Find person</button><div id="communityFindResult"></div></div>
 <div id="community-groups-panel" class="panel hidden"><h3>Study groups</h3><label for="communityGroupName">GROUP NAME</label><input id="communityGroupName" placeholder="e.g. Friday Bible study"><label for="communityGroupDescription">DESCRIPTION</label><textarea id="communityGroupDescription" rows="2" placeholder="What will you study?"></textarea><label><input type="checkbox" id="communityGroupPublic"> Make group public</label><button id="communityCreateGroup" class="primary-btn" type="button">Create group</button><div id="communityGroups"></div></div>
