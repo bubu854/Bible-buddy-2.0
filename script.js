@@ -671,7 +671,21 @@ page("home");
  $("#buddyTutorialBack")?.addEventListener("click",()=>{if(buddyTutorialStep>0){buddyTutorialStep--;renderBuddyTutorialStep();speakBuddyTutorial();}});
  $("#buddyTutorialNext")?.addEventListener("click",()=>{if(buddyTutorialStep<buddyTutorialSteps.length-1){buddyTutorialStep++;renderBuddyTutorialStep();speakBuddyTutorial();}else closeBuddyTutorial();});
  $("#buddyTutorialSpeak")?.addEventListener("click",speakBuddyTutorial);
- $("#replayBuddyTutorial")?.addEventListener("click",showBuddyTutorial);
+ // Use delegated capture handling so the Settings control still works if other app scripts re-render sections.
+ window.showBuddyTutorial=showBuddyTutorial;
+ document.addEventListener("click",function(event){
+  const trigger=event.target.closest("#replayBuddyTutorial");
+  if(!trigger)return;
+  event.preventDefault();
+  event.stopPropagation();
+  showBuddyTutorial();
+ },true);
+ document.addEventListener("keydown",function(event){
+  if(event.key==="Enter"||event.key===" "){
+   const trigger=event.target.closest&&event.target.closest("#replayBuddyTutorial");
+   if(trigger){event.preventDefault();showBuddyTutorial();}
+  }
+ },true);
  if(!store.get("buddy_tutorial_seen",false))showBuddyTutorial();
 
  
