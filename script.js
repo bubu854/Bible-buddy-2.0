@@ -316,7 +316,7 @@ page("home");
    language.innerHTML="";
    const byName=(x,y)=>(x.name||x.englishName||x.id).localeCompare(y.name||y.englishName||y.id);
    const englishWanted=[["ESV",/\bESV\b|English Standard Version/i],["KJV",/\bKJV\b|King James Version/i],["NIV",/\bNIV\b|New International Version/i]];
-   const english=[];
+   const english=translations.filter(t=>(t.language||"").toLowerCase()==="eng");
    const englishGroup=document.createElement("optgroup");englishGroup.label="English";
    englishWanted.forEach(([label,re])=>{const found=translations.find(t=>(t.language||"").toLowerCase()==="eng"&&re.test([t.id,t.name,t.shortName,t.englishName].join(" ")));const value=found?found.id:"__EN_"+label+"__";englishGroup.append(new Option(label+(found?"":" — open online"),value));});
    language.append(englishGroup);
@@ -376,13 +376,12 @@ page("home");
   node.childNodes.forEach(c=>walk(c,fo));
  }
  function apply(){const fo=picker.value==="Faroese (Føroyskt)";document.documentElement.lang=fo?"fo":"en";walk(document.body,fo);
-  const bibleLang=document.querySelector("#bibleLanguageSelect");if(bibleLang){const v=fo?"fo":"en";if(bibleLang.value!==v){bibleLang.value=v;bibleLang.dispatchEvent(new Event("change"));}}
   document.querySelectorAll("#bookSelect option").forEach(o=>o.textContent=fo?(bookNames[o.value]||o.value):o.value);
  }
- picker.addEventListener("change",apply);
+ picker.addEventListener("change",()=>{localStorage.setItem("bb_language",picker.value);apply()});
  const observer=new MutationObserver(rs=>{const fo=picker.value!=="English";rs.forEach(r=>{r.addedNodes.forEach(n=>walk(n,fo));if(r.type==="characterData")translateText(r.target,fo);});});
  observer.observe(document.body,{subtree:true,childList:true,characterData:true});
- picker.value="English";localStorage.setItem("bb_language","English");apply();
+ picker.value=localStorage.getItem("bb_language")||"English";if(![...picker.options].some(o=>o.value===picker.value))picker.value="English";apply();
 })();
 
 
