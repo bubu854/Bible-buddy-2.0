@@ -9,7 +9,8 @@ const groups=[
 ["06","Wallpapers","Choose personal photos and create verse wallpapers",[]],
 ["07","Creativity","Make Bible verses and art your own",[]],
 ["08","Settings","Make Bible Buddy feel right for you",[]],
-["09","Bible Games","Play, learn and unlock new levels",[]],\n["10","Community","Connect with Christian friends and share encouragement",[]]
+["09","Bible Games","Play, learn and unlock new levels",[]],
+["10","Community","Connect with Christian friends and share encouragement",[]]
 ];
 const classify=(title,page)=>{
  const t=title.toLowerCase();
