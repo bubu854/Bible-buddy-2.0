@@ -18,6 +18,7 @@ document.addEventListener("click",e=>{if(e.target.matches("[data-delete-prayer]"
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 const prompts={ "Explain John 3:16":"John 3:16 is a well-known summary of God's love: it says God gave his Son so that people who believe may have eternal life. Read the whole passage around the verse to understand its context.", "Who was Moses?":"Moses was a leader chosen by God to lead the Israelites out of slavery in Egypt. His story is told mainly in Exodus, Leviticus, Numbers and Deuteronomy.", "Help me pray":"You could begin simply: “God, thank you for being with me. Please guide me today, help me understand your Word, and show me how to love others. Amen.”" };
 let buddyLastSpeech="";
+let buddyCurrentUtterance=null;
 function speakBuddy(text){
  if(!text)return;
  if(!("speechSynthesis" in window)){toast("Speech is not supported in this browser");return}
@@ -25,6 +26,7 @@ function speakBuddy(text){
  try{window.speechSynthesis.resume()}catch(e){}
  const fo=$("#languageSelect")?.value!=="English";
  const utterance=new SpeechSynthesisUtterance(String(text));
+ buddyCurrentUtterance=utterance;
  utterance.onstart=()=>{const character=$("#buddyCharacter"),status=$("#buddyVoiceStatus");character?.classList.add("speaking");if(status)status.textContent=fo?"Buddy tosar nú…":"Buddy is speaking…"};
  const voices=window.speechSynthesis.getVoices();
  const selectedVoice=store.get("buddy_voice","");
@@ -32,10 +34,10 @@ function speakBuddy(text){
  const matchesLanguage=v=>fo?/^(fo|da)(-|$)/i.test(v.lang):/^en(-|$)/i.test(v.lang);
  const preferred=(selected&&matchesLanguage(selected)?selected:null)||(fo?(voices.find(v=>/^fo(-|$)/i.test(v.lang))||voices.find(v=>/^da(-|$)/i.test(v.lang))):voices.find(v=>/^en(-|$)/i.test(v.lang)));
  utterance.lang=fo?"fo-FO":"en-US";if(preferred){utterance.voice=preferred;utterance.lang=preferred.lang}
- utterance.rate=0.92;utterance.pitch=1.02;
+ utterance.rate=Number($("#buddySpeechSpeed")?.value||store.get("buddy_speech_speed",0.92));utterance.pitch=1.02;
  const character=$("#buddyCharacter"),status=$("#buddyVoiceStatus");
- utterance.onend=()=>{character?.classList.remove("speaking");if(status)status.textContent=fo?"Trýst á knøttin fyri at hoyra Buddy aftur.":"Tap the button to hear Buddy again."};
- utterance.onerror=()=>{character?.classList.remove("speaking");if(status)status.textContent=fo?"Røddin er ikki tøk á hesum telefonini.":"Voice is not available on this device."};
+ utterance.onend=()=>{character?.classList.remove("speaking");buddyCurrentUtterance=null;const pause=$("#buddyVoicePause");if(pause)pause.textContent="Ⅱ Pause";if(status)status.textContent=fo?"Trýst á knøttin fyri at hoyra Buddy aftur.":"Tap the button to hear Buddy again."};
+ utterance.onerror=()=>{character?.classList.remove("speaking");buddyCurrentUtterance=null;const pause=$("#buddyVoicePause");if(pause)pause.textContent="Ⅱ Pause";if(status)status.textContent=fo?"Røddin er ikki tøk á hesum telefonini.":"Voice is not available on this device."};
  window.speechSynthesis.speak(utterance);
 }
 function loadBuddyVoices(){
@@ -56,7 +58,15 @@ $("#buddyVoicePreview")?.addEventListener("click",()=>{const old=buddyLastSpeech
 if("speechSynthesis"in window){loadBuddyVoices();window.speechSynthesis.onvoiceschanged=loadBuddyVoices}
 applyBuddyAvatar();
 $("#buddyVoiceToggle")?.addEventListener("click",()=>speakBuddy(buddyLastSpeech||$("#chatMessages .buddy-message:last-child")?.textContent||"Hi, I am Buddy!"));
-$("#buddyVoiceStop")?.addEventListener("click",()=>{if("speechSynthesis"in window)window.speechSynthesis.cancel();$("#buddyCharacter")?.classList.remove("speaking");const status=$("#buddyVoiceStatus");if(status)status.textContent=$("#languageSelect")?.value!=="English"?"Røddin er steðgað.":"Voice stopped."});
+$("#buddyVoicePause")?.addEventListener("click",()=>{
+ if(!("speechSynthesis"in window))return;
+ const button=$("#buddyVoicePause");
+ if(window.speechSynthesis.paused){window.speechSynthesis.resume();button.textContent="Ⅱ Pause";$("#buddyVoiceStatus").textContent=$("#languageSelect")?.value!=="English"?"Buddy heldur fram…":"Buddy is continuing…";}
+ else if(window.speechSynthesis.speaking){window.speechSynthesis.pause();button.textContent="▶ Resume";$("#buddyVoiceStatus").textContent=$("#languageSelect")?.value!=="English"?"Buddy er í steðgi.":"Buddy is paused.";}
+});
+$("#buddySpeechSpeed")?.addEventListener("change",e=>{store.set("buddy_speech_speed",Number(e.target.value));toast($("#languageSelect")?.value!=="English"?"Lesiferð goymd":"Reading speed saved")});
+if($("#buddySpeechSpeed"))$("#buddySpeechSpeed").value=String(store.get("buddy_speech_speed",0.92));
+$("#buddyVoiceStop")?.addEventListener("click",()=>{if("speechSynthesis"in window)window.speechSynthesis.cancel();buddyCurrentUtterance=null;$("#buddyCharacter")?.classList.remove("speaking");const pause=$("#buddyVoicePause");if(pause)pause.textContent="Ⅱ Pause";const status=$("#buddyVoiceStatus");if(status)status.textContent=$("#languageSelect")?.value!=="English"?"Røddin er steðgað.":"Voice stopped."});
 // Safety guard: keep Buddy's replies suitable for a general audience.
 function buddyReplyIsInappropriate(value){
  const text=String(value||"").toLowerCase();
@@ -73,6 +83,11 @@ function safeBuddyFallback(){
   ? "Eg vil fegin hjálpa, men eg kann ikki geva óhóskandi, kynsliga eksplisitt, hatursfullt ella skaðiligt innihald. Spyr meg heldur um Bíbliuna, trúgv, bøn ella eitt annað trygt evni."
   : "I’m here to help, but I can’t provide inappropriate, sexually explicit, hateful, or harmful content. I can still help with Bible questions, faith, prayer, or another safe topic.";
 }
+function extractBibleReferences(text){
+ const bookNames=["Genesis","Exodus","Leviticus","Numbers","Deuteronomy","Joshua","Judges","Ruth","1 Samuel","2 Samuel","1 Kings","2 Kings","1 Chronicles","2 Chronicles","Ezra","Nehemiah","Esther","Job","Psalms?","Proverbs","Ecclesiastes","Song of Solomon","Song of Songs","Isaiah","Jeremiah","Lamentations","Ezekiel","Daniel","Hosea","Joel","Amos","Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah","Haggai","Zechariah","Malachi","Matthew","Mark","Luke","John","Acts","Romans","1 Corinthians","2 Corinthians","Galatians","Ephesians","Philippians","Colossians","1 Thessalonians","2 Thessalonians","1 Timothy","2 Timothy","Titus","Philemon","Hebrews","James","1 Peter","2 Peter","1 John","2 John","3 John","Jude","Revelation"];
+ const pattern=new RegExp("\\b("+bookNames.join("|")+")\\s+\\d{1,3}(?::\\d{1,3}(?:[-–]\\d{1,3})?(?:,\\s*\\d{1,3}(?:[-–]\\d{1,3})?)*)?(?:\\s*[-–]\\s*\\d{1,3}(?::\\d{1,3})?)?","gi");
+ return [...new Set((String(text).match(pattern)||[]).map(x=>x.replace(/\\s+/g," ").trim()))];
+}
 let buddyBusy=false;
 async function sendBuddy(t,mode="chat"){
  t=String(t||"").trim();if(!t||buddyBusy)return;
@@ -82,8 +97,8 @@ async function sendBuddy(t,mode="chat"){
  buddyBusy=true;
  const form=$("#chatForm"),sendButton=form?.querySelector('button[type="submit"],button:not([type])');if(sendButton)sendButton.disabled=true;
  const system=fo
- ? "Tú eitur Buddy og ert ein blíður, hjálpsamur Bíbliu-lestrarhjálpari. Svara á føroyskum (føroyskt mál). Greið frá Bíbliuversum í greiðum máli, gev samanhang og nevna bók, kapittul og vers, tá tað er viðkomandi. Ver virðiligur móti kristnum trúarspurningum. Um tú ikki veitst nakað, sig tað. Finn ikki uppá beinleiðis Bíbliu-tilvitnanir. Tú ert ikki prestur ella gudfrøðiligur myndugleiki. Halt altíð innihaldið hóskandi fyri øll: brúka ikki banniorð, kynsliga eksplisitt innihald, hatursmál, happing, hóttanir, grafiskt harðskaparligt innihald ella vegleiðing til at skaða fólk. Um onkur biður um slíkt, nokta stutt og vinarliga og vend aftur til eitt trygt evni. Tú kanst greiða frá truplum bíbliusøgum á sakligan og ikki-grafiskan hátt."
- : "You are Buddy, a kind and helpful Bible study companion. Answer in clear English. Explain Bible passages with context, mention book, chapter and verse when relevant, and be respectful of Christian beliefs and different interpretations. If unsure, say so. Never invent direct Bible quotations. You are not a pastor or theological authority. Keep every reply suitable for a general audience: no profanity, sexually explicit content, hate speech, bullying, threats, graphic violence, or instructions for harming anyone. If asked for such content, briefly and kindly refuse and redirect to a safe topic. You may discuss difficult biblical events factually and non-graphically.";
+ ? "Tú eitur Buddy og ert ein blíður, hjálpsamur Bíbliu-lestrarhjálpari. Svara á føroyskum (føroyskt mál). Greið frá Bíbliuversum í greiðum máli, gev samanhang og nevna bók, kapittul og vers, tá tað er viðkomandi. Enda við einari stuttari linju: Bíbliu-tilvísingar: [neyvar bók/kapittul/vers-tilvísingar úr svarinum]; um eingin beinleiðis tilvísing er viðkomandi, sig tað. Ver virðiligur móti kristnum trúarspurningum. Um tú ikki veitst nakað, sig tað. Finn ikki uppá beinleiðis Bíbliu-tilvitnanir. Tú ert ikki prestur ella gudfrøðiligur myndugleiki. Halt altíð innihaldið hóskandi fyri øll: brúka ikki banniorð, kynsliga eksplisitt innihald, hatursmál, happing, hóttanir, grafiskt harðskaparligt innihald ella vegleiðing til at skaða fólk. Um onkur biður um slíkt, nokta stutt og vinarliga og vend aftur til eitt trygt evni. Tú kanst greiða frá truplum bíbliusøgum á sakligan og ikki-grafiskan hátt."
+ : "You are Buddy, a kind and helpful Bible study companion. Answer in clear English. Explain Bible passages with context, mention book, chapter and verse when relevant, and be respectful of Christian beliefs and different interpretations. End every answer with a short line, “Bible references: …”, listing the exact book/chapter/verse references discussed; if none apply, say “No specific Bible passage cited.” Never invent a reference. If unsure, say so. Never invent direct Bible quotations. You are not a pastor or theological authority. Keep every reply suitable for a general audience: no profanity, sexually explicit content, hate speech, bullying, threats, graphic violence, or instructions for harming anyone. If asked for such content, briefly and kindly refuse and redirect to a safe topic. You may discuss difficult biblical events factually and non-graphically.";
  const modeInstruction=mode==="deep-study"
  ? (fo?" Hetta er ein djúp bíbliugransking: skriva eina væl skipaða, gjøgnumarbeidda greining við yvirskriftum fyri samanhang, tekstbygnað, høvuðstema, vers-fyri-vers frágreiðing har hóskandi, aðrar bíbliu-tilvísingar, tulkingar og praktiska nýtslu. Brúka umleið 500-800 orð, men ver greið/ur. Skil týðiliga millum tekst og tulking. Uppfinn ikki fakta ella sitat.":" This is a DEEP STUDY, not a normal chat reply. Give a thorough, structured study with headings: context and original audience, literary structure, key themes, verse-by-verse explanation where appropriate, connected passages, interpretive views, and practical application. Aim for 500-800 words when the passage supports it. Clearly separate what the text says from interpretation. Never invent facts or quotations.")
  : mode==="sermon" ? (fo?" Greina avskriftina gjølla, men greið og skipað.":" Analyze the transcript thoroughly but keep the breakdown clear and organized.")
@@ -100,7 +115,12 @@ async function sendBuddy(t,mode="chat"){
   answer=typeof answer==="string"?answer.trim():"";
   if(!answer)throw new Error(data?.error?.message||("The AI returned no visible answer (finish reason: "+(data?.choices?.[0]?.finish_reason||"unknown")+"). Try again in a moment."));
   if(buddyReplyIsInappropriate(answer))answer=safeBuddyFallback();
-  typing.textContent=answer;buddyLastSpeech=answer;
+  typing.textContent=answer;
+  const refs=extractBibleReferences(answer);
+  const refLine=document.createElement("div");refLine.className="buddy-reference-line";
+  refLine.textContent=refs.length?(fo?"Bíbliu-tilvísingar: ":"Bible references: ")+refs.join(", "):(fo?"Eingin beinleiðis bíbliu-tilvísing nevnd.":"No specific Bible passage cited.");
+  typing.append(refLine);
+  buddyLastSpeech=answer;
   // Automatically read every answer aloud; the Speak button remains available.
   speakBuddy(answer);
  }catch(error){
