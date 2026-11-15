@@ -32,38 +32,49 @@ function renderBuddyWords(container,text){
  }
  container.append(fragment);
 }
-function speakBuddy(text){
+function speakBuddy(text,withStudyPauses=false){
  if(!text)return;
  if(!("speechSynthesis" in window)){toast("Speech is not supported in this browser");return}
  window.speechSynthesis.cancel();
  try{window.speechSynthesis.resume()}catch(e){}
  const fo=$("#languageSelect")?.value!=="English";
- const utterance=new SpeechSynthesisUtterance(String(text));
- buddyCurrentUtterance=utterance;
- utterance.onstart=()=>{const character=$("#buddyCharacter"),status=$("#buddyVoiceStatus");character?.classList.add("speaking");if(status)status.textContent=fo?"Buddy tosar nú…":"Buddy is speaking…"};
- utterance.onboundary=(event)=>{
-  if(event.name!=="word")return;
-  const activeStart=Number(event.charIndex)||0;
-  document.querySelectorAll(".buddy-spoken-word.is-speaking").forEach(el=>el.classList.remove("is-speaking"));
-  const box=buddyCurrentMessage;
-  if(box){
-   const span=[...box.querySelectorAll(".buddy-spoken-word")].find(el=>Number(el.dataset.start)<=activeStart&&Number(el.dataset.start)+el.textContent.length>activeStart);
-   if(span)span.classList.add("is-speaking");
-  }
- };
- const voices=window.speechSynthesis.getVoices();
+ const voiceList=window.speechSynthesis.getVoices();
  const selectedVoice=store.get("buddy_voice","");
- const selected=voices.find(v=>v.voiceURI===selectedVoice);
+ const selected=voiceList.find(v=>v.voiceURI===selectedVoice);
  const matchesLanguage=v=>fo?/^(fo|da)(-|$)/i.test(v.lang):/^en(-|$)/i.test(v.lang);
- const preferred=(selected&&matchesLanguage(selected)?selected:null)||(fo?(voices.find(v=>/^fo(-|$)/i.test(v.lang))||voices.find(v=>/^da(-|$)/i.test(v.lang))):voices.find(v=>/^en(-|$)/i.test(v.lang)));
- utterance.lang=fo?"fo-FO":"en-US";if(preferred){utterance.voice=preferred;utterance.lang=preferred.lang}
- utterance.rate=Number($("#buddySpeechSpeed")?.value||store.get("buddy_speech_speed",0.92));utterance.pitch=1.02;
- const character=$("#buddyCharacter"),status=$("#buddyVoiceStatus");
- utterance.onend=()=>{character?.classList.remove("speaking");buddyCurrentUtterance=null;const pause=$("#buddyVoicePause");if(pause)pause.textContent="Ⅱ Pause";if(status)status.textContent=fo?"Trýst á knøttin fyri at hoyra Buddy aftur.":"Tap the button to hear Buddy again."};
- utterance.onerror=()=>{character?.classList.remove("speaking");buddyCurrentUtterance=null;const pause=$("#buddyVoicePause");if(pause)pause.textContent="Ⅱ Pause";if(status)status.textContent=fo?"Røddin er ikki tøk á hesum telefonini.":"Voice is not available on this device."};
- window.speechSynthesis.speak(utterance);
-}
-function loadBuddyVoices(){
+ const preferred=(selected&&matchesLanguage(selected)?selected:null)||(fo?(voiceList.find(v=>/^fo(-|$)/i.test(v.lang))||voiceList.find(v=>/^da(-|$)/i.test(v.lang))):voiceList.find(v=>/^en(-|$)/i.test(v.lang)));
+ const character=$("#buddyCharacter"),status=$("#buddyVoiceStatus"),pauseButton=$("#buddyVoicePause");
+ const parts=withStudyPauses?String(text).split(/\n\s*\n/).map(x=>x.trim()).filter(Boolean):[String(text)];
+ let partIndex=0,stopped=false;
+ buddyCurrentUtterance=null;
+ const finish=()=>{character?.classList.remove("speaking");buddyCurrentUtterance=null;if(pauseButton)pauseButton.textContent="Ⅱ Pause";if(status)status.textContent=fo?"Trýst á knøttin fyri at hoyra Buddy aftur.":"Tap the button to hear Buddy again."};
+ const speakPart=()=>{
+  if(stopped||partIndex>=parts.length){finish();return}
+  const part=parts[partIndex++];
+  const utterance=new SpeechSynthesisUtterance(part);
+  buddyCurrentUtterance=utterance;
+  utterance.onstart=()=>{character?.classList.add("speaking");if(status)status.textContent=fo?"Buddy tosar nú…":"Buddy is speaking…"};
+  utterance.onboundary=(event)=>{
+   if(event.name!=="word")return;
+   const activeStart=Number(event.charIndex)||0;
+   document.querySelectorAll(".buddy-spoken-word.is-speaking").forEach(el=>el.classList.remove("is-speaking"));
+   const box=buddyCurrentMessage;
+   if(box){const span=[...box.querySelectorAll(".buddy-spoken-word")].find(el=>Number(el.dataset.start)<=activeStart&&Number(el.dataset.start)+el.textContent.length>activeStart);if(span)span.classList.add("is-speaking")}
+  };
+  utterance.lang=fo?"fo-FO":"en-US";if(preferred){utterance.voice=preferred;utterance.lang=preferred.lang}
+  utterance.rate=Number($("#buddySpeechSpeed")?.value||store.get("buddy_speech_speed",0.92));utterance.pitch=1.02;
+  utterance.onend=()=>{
+   if(stopped)return;
+   if(partIndex>=parts.length){finish();return}
+   const next=parts[partIndex];
+   const isVerse=/\b(?:Genesis|Exodus|Leviticus|Numbers|Deuteronomy|Joshua|Judges|Ruth|Samuel|Kings|Chronicles|Ezra|Nehemiah|Esther|Job|Psalms?|Proverbs|Ecclesiastes|Isaiah|Jeremiah|Ezekiel|Daniel|Matthew|Mark|Luke|John|Acts|Romans|Corinthians|Galatians|Ephesians|Philippians|Colossians|Thessalonians|Timothy|Titus|Philemon|Hebrews|James|Peter|Jude|Revelation)\s+\d{1,3}(?::\d{1,3})?/i.test(next);
+   setTimeout(speakPart,isVerse?5000:2200);
+  };
+  utterance.onerror=()=>{stopped=true;finish();if(status)status.textContent=fo?"Røddin er ikki tøk á hesum telefonini.":"Voice is not available on this device."};
+  window.speechSynthesis.speak(utterance);
+ };
+ speakPart();
+}function loadBuddyVoices(){
  const select=$("#buddyVoiceSelect");if(!select||!("speechSynthesis"in window))return;
  const saved=store.get("buddy_voice","");
  const voices=window.speechSynthesis.getVoices();
@@ -160,7 +171,7 @@ async function sendBuddy(t,mode="chat"){
   buddyLastSpeech=answer;
   buddyCurrentMessage=typing;
   // Automatically read every answer aloud; the Speak button remains available.
-  speakBuddy(answer);
+  speakBuddy(answer,mode==="deep-study"&&!!$("#deepStudyPauses")?.checked);
  }catch(error){
   console.error("Buddy AI connection:",error);
   const detail=error?.name==="AbortError"?"The request timed out after 60 seconds.":error?.message||"Network request failed.";
@@ -458,8 +469,8 @@ page("home");
   const passage=$("#deepStudyPassage").value.trim();if(!passage){toast(say("Enter a passage or topic first.","Skriva fyrst eitt bíbliuvers ella evni."));return}
   const focus=$("#deepStudyFocus").value;
   const prompt=fo()
-   ?"Ger eina djúpa bíbliugransking á føroyskum av "+passage+". Høvuðsdentur: "+focus+". Greið frá samanhangi, hvørjum teksturin varð skrivaður til, bygnaði, høvuðsevnum, týdningi, sambondum við onnur bíbliuvers og praktiskari nýtslu. Skil millum tað, teksturin beinleiðis sigur, og tulkingar. Uppfinn ikki sitat, søguligar upplýsingar ella upprunamálsfrøðiligar upplýsingar. Sig frá, um tú ert óvissur."
-   :"Create a careful deep Bible study of "+passage+". Focus: "+focus+". Explain literary and historical context, original audience, structure, key themes, meaning, connections to other passages, and practical application. Distinguish what the text explicitly says from interpretation. Do not invent quotations, historical facts, or original-language claims. Note uncertainty and mention significant interpretive differences fairly.";
+   ?"Ger eina djúpa bíbliugransking á føroyskum av "+passage+". Høvuðsdentur: "+focus+". Greið frá samanhangi, hvørjum teksturin varð skrivaður til, bygnaði, høvuðsevnum, týdningi, sambondum við onnur bíbliuvers og praktiskari nýtslu. Tá tú umrøður eitt ávíst bíbliuvers, gev neyva tilvísing og endurgev sjálvt versið, tá tú kanst vátta orðingina. Merk sitat týðiliga og finn ikki uppá ella broyt Bíbliuorð. Skil millum tað, teksturin beinleiðis sigur, og tulkingar. Uppfinn ikki søguligar upplýsingar ella upprunamálsfrøðiligar upplýsingar. Sig frá, um tú ert óvissur."
+   :"Create a careful deep Bible study of "+passage+". Focus: "+focus+". Explain literary and historical context, original audience, structure, key themes, meaning, connections to other passages, and practical application. Whenever you discuss a specific Bible verse, give its exact reference and include the verse wording when you can verify it; clearly label quotations and never invent or misquote Scripture. Distinguish what the text explicitly says from interpretation. Do not invent historical facts or original-language claims. Note uncertainty and mention significant interpretive differences fairly.";
   page("buddy");sendBuddy(prompt,"deep-study");
  });
 
