@@ -62,7 +62,7 @@ function speakBuddy(text,withStudyPauses=false){
    if(box){const span=[...box.querySelectorAll(".buddy-spoken-word")].find(el=>Number(el.dataset.start)<=activeStart&&Number(el.dataset.start)+el.textContent.length>activeStart);if(span)span.classList.add("is-speaking")}
   };
   utterance.lang=fo?"fo-FO":"en-US";if(preferred){utterance.voice=preferred;utterance.lang=preferred.lang}
-  utterance.rate=Number($("#buddySpeechSpeed")?.value||store.get("buddy_speech_speed",0.92));utterance.pitch=1.02;
+  utterance.rate=Number($("#buddySpeechSpeed")?.value||store.get("buddy_speech_speed",1.15));utterance.pitch=1.02;
   utterance.onend=()=>{
    if(stopped)return;
    if(partIndex>=parts.length){finish();return}
@@ -99,7 +99,7 @@ $("#buddyVoicePause")?.addEventListener("click",()=>{
  else if(window.speechSynthesis.speaking){window.speechSynthesis.pause();button.textContent="▶ Resume";$("#buddyVoiceStatus").textContent=$("#languageSelect")?.value!=="English"?"Buddy er í steðgi.":"Buddy is paused.";}
 });
 $("#buddySpeechSpeed")?.addEventListener("change",e=>{store.set("buddy_speech_speed",Number(e.target.value));toast($("#languageSelect")?.value!=="English"?"Lesiferð goymd":"Reading speed saved")});
-if($("#buddySpeechSpeed"))$("#buddySpeechSpeed").value=String(store.get("buddy_speech_speed",0.92));
+if($("#buddySpeechSpeed")){$("#buddySpeechSpeed").value=String(store.get("buddy_speech_speed",1.15));if($("#buddySpeechSpeed").value==="0.92"){$("#buddySpeechSpeed").value="1.15";store.set("buddy_speech_speed",1.15);}}
 $("#buddyVoiceStop")?.addEventListener("click",()=>{if("speechSynthesis"in window)window.speechSynthesis.cancel();buddyCurrentUtterance=null;$("#buddyCharacter")?.classList.remove("speaking");const pause=$("#buddyVoicePause");if(pause)pause.textContent="Ⅱ Pause";const status=$("#buddyVoiceStatus");if(status)status.textContent=$("#languageSelect")?.value!=="English"?"Røddin er steðgað.":"Voice stopped."});
 // Safety guard: keep Buddy's replies suitable for a general audience.
 function buddyReplyIsInappropriate(value){
@@ -147,11 +147,11 @@ async function sendBuddy(t,mode="chat"){
  const modeInstruction=mode==="deep-study"
  ? (fo?" Hetta er ein djúp bíbliugransking: skriva eina væl skipaða, gjøgnumarbeidda greining við yvirskriftum fyri samanhang, tekstbygnað, høvuðstema, vers-fyri-vers frágreiðing har hóskandi, aðrar bíbliu-tilvísingar, tulkingar og praktiska nýtslu. Brúka umleið 500-800 orð, men ver greið/ur. Skil týðiliga millum tekst og tulking. Uppfinn ikki fakta ella sitat.":" This is a DEEP STUDY, not a normal chat reply. Give a thorough, structured study with headings: context and original audience, literary structure, key themes, verse-by-verse explanation where appropriate, connected passages, interpretive views, and practical application. Aim for 500-800 words when the passage supports it. Clearly separate what the text says from interpretation. Never invent facts or quotations.")
  : mode==="sermon" ? (fo?" Greina avskriftina gjølla, men greið og skipað.":" Analyze the transcript thoroughly but keep the breakdown clear and organized.")
- : (fo?" Halt vanlig svar stutt og greið, vanliga 2-5 setningar og í mesta lagi umleið 100 orð. Svara skjótt og beinleiðis. Kanna stavseting, føroyska málfrøði, bendingar og teknseting væl, áðrenn tú sendir svarið. Brúka natúrligt og rætt føroyskt; skriva ikki blandingsmál.":" Keep normal replies short and direct: usually 2-5 sentences and under 100 words. Answer quickly. Carefully proofread spelling, grammar, punctuation and capitalization before sending. Use natural, correct English; do not use typos, malformed words or awkward phrasing.") ;
- const history=[...box.querySelectorAll(".user-message,.buddy-message")].filter(el=>el!==typing).slice(-4).map(el=>({role:el.classList.contains("user-message")?"user":"assistant",content:el.textContent}));
+ : (fo?" Halt vanlig svar stutt og greið, vanliga 2-5 setningar og í mesta lagi umleið 100 orð. Svara skjótt og beinleiðis. Kanna stavseting, føroyska málfrøði, bendingar og teknseting væl, áðrenn tú sendir svarið. Brúka natúrligt og rætt føroyskt; skriva ikki blandingsmál.":" Keep normal replies very concise and direct: usually 2-3 sentences and under 60 words. Prioritise a quick answer. Carefully proofread spelling, grammar, punctuation and capitalization before sending. Use natural, correct English; do not use typos, malformed words or awkward phrasing.") ;
+ const history=[...box.querySelectorAll(".user-message,.buddy-message")].filter(el=>el!==typing).slice(-2).map(el=>({role:el.classList.contains("user-message")?"user":"assistant",content:el.textContent}));
  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),60000);
  try{
-  const response=await fetch("https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"Meta-Llama-3_3-70B-Instruct",messages:[{role:"system",content:system+modeInstruction},...history],max_tokens:mode==="deep-study"?2400:mode==="sermon"?1800:220,temperature:0.25,stream:false}),credentials:"omit",signal:controller.signal});
+  const response=await fetch("https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"Meta-Llama-3_3-70B-Instruct",messages:[{role:"system",content:system+modeInstruction},...history],max_tokens:mode==="deep-study"?2400:mode==="sermon"?1800:150,temperature:0.2,stream:false}),credentials:"omit",signal:controller.signal});
   const raw=await response.text();let data={};try{data=raw?JSON.parse(raw):{}}catch(e){throw new Error("The AI service sent an unreadable response (HTTP "+response.status+").")}
   if(!response.ok)throw new Error(data?.error?.message||data?.message||("AI service returned HTTP "+response.status));
   const message=data?.choices?.[0]?.message;
@@ -599,9 +599,10 @@ page("home");
  voiceButton?.addEventListener("click",()=>{
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){
-   if(voiceStatus)voiceStatus.textContent=say("This version of iPhone Safari does not expose voice recognition to the app. Tap the text field, use the microphone on the iPhone keyboard to dictate, then tap Send. Buddy will still speak the answer aloud.","Hesin Safari-kagin á iPhone hevur ikki røddarkennara tøkan fyri appina. Trýst á tekstteigin, brúka mikrofonina á iPhone-knappaborðinum og trýst síðani Send. Buddy lesur framvegis svarið hart.");
-   $("#chatInput")?.focus();
-   toast(say("iPhone Safari requires keyboard dictation here.","Á iPhone Safari mást tú brúka diktering á knappaborðinum."));
+   const input=$("#chatInput");
+   if(voiceStatus)voiceStatus.textContent=say("Your iPhone browser does not support hands-free speech recognition here. The iPhone microphone on the keyboard can still turn your speech into words: tap the text box, tap the small microphone on the keyboard, speak, then tap the gold Send arrow. Buddy will answer aloud.","Hesin iPhone-kagin stuðlar ikki røddarkennara beinleiðis. Mikrofonin á iPhone-knappaborðinum kann kortini skriva tað, tú sigur: trýst á tekstteigin, síðani á mikrofonina á knappaborðinum, tosa og trýst á gullpílina. Buddy svarar hart.");
+   if(input){input.placeholder=say("Tap here, then use the iPhone keyboard microphone…","Trýst her og brúka mikrofonina á knappaborðinum…");input.focus();input.scrollIntoView({behavior:"smooth",block:"center"});}
+   toast(say("Tap the keyboard microphone to speak to Buddy.","Trýst á mikrofonina á knappaborðinum fyri at tosa við Buddy."));
    return;
   }
   if(voiceActive){voiceRec?.stop();voiceActive=false;setVoiceButton(false);return}
