@@ -19,6 +19,18 @@ function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",
 const prompts={ "Explain John 3:16":"John 3:16 is a well-known summary of God's love: it says God gave his Son so that people who believe may have eternal life. Read the whole passage around the verse to understand its context.", "Who was Moses?":"Moses was a leader chosen by God to lead the Israelites out of slavery in Egypt. His story is told mainly in Exodus, Leviticus, Numbers and Deuteronomy.", "Help me pray":"You could begin simply: “God, thank you for being with me. Please guide me today, help me understand your Word, and show me how to love others. Amen.”" };
 let buddyLastSpeech="";
 let buddyCurrentUtterance=null;
+function renderBuddyWords(container,text){
+ container.replaceChildren();
+ const fragment=document.createDocumentFragment();
+ const parts=String(text).match(/\\s+|[^\\s]+/g)||[];
+ let offset=0;
+ for(const part of parts){
+  if(/^\\s+$/.test(part)){fragment.append(document.createTextNode(part));offset+=part.length;continue;}
+  const word=document.createElement("span");word.className="buddy-spoken-word";word.dataset.start=String(offset);word.textContent=part;word.title="Tap to hear from this word";
+  fragment.append(word);offset+=part.length;
+ }
+ container.append(fragment);
+}
 function speakBuddy(text){
  if(!text)return;
  if(!("speechSynthesis" in window)){toast("Speech is not supported in this browser");return}
@@ -28,6 +40,18 @@ function speakBuddy(text){
  const utterance=new SpeechSynthesisUtterance(String(text));
  buddyCurrentUtterance=utterance;
  utterance.onstart=()=>{const character=$("#buddyCharacter"),status=$("#buddyVoiceStatus");character?.classList.add("speaking");if(status)status.textContent=fo?"Buddy tosar nú…":"Buddy is speaking…"};
+ utterance.onboundary=(event)=>{
+  if(event.name!=="word")return;
+  const activeStart=Number(event.charIndex)||0;
+  document.querySelectorAll(".buddy-spoken-word.is-speaking").forEach(el=>el.classList.remove("is-speaking"));
+  const message=document.querySelectorAll("#chatMessages .buddy-message");
+  message.forEach(box=>{
+   const raw=box.dataset.buddySpeech||"";
+   if(!raw)return;
+   const span=[...box.querySelectorAll(".buddy-spoken-word")].find(el=>Number(el.dataset.start)<=activeStart&&Number(el.dataset.start)+el.textContent.length>activeStart);
+   if(span)span.classList.add("is-speaking");
+  });
+ };
  const voices=window.speechSynthesis.getVoices();
  const selectedVoice=store.get("buddy_voice","");
  const selected=voices.find(v=>v.voiceURI===selectedVoice);
@@ -88,6 +112,17 @@ function extractBibleReferences(text){
  const pattern=new RegExp("\\b("+bookNames.join("|")+")\\s+\\d{1,3}(?::\\d{1,3}(?:[-–]\\d{1,3})?(?:,\\s*\\d{1,3}(?:[-–]\\d{1,3})?)*)?(?:\\s*[-–]\\s*\\d{1,3}(?::\\d{1,3})?)?","gi");
  return [...new Set((String(text).match(pattern)||[]).map(x=>x.replace(/\s+/g," ").trim()))];
 }
+document.querySelector("#chatMessages")?.addEventListener("click",event=>{
+ const word=event.target.closest(".buddy-spoken-word");
+ const message=word?.closest(".buddy-message");
+ if(!word||!message)return;
+ const full=message.dataset.buddySpeech||"";
+ const start=Number(word.dataset.start)||0;
+ if(full&&start<full.length){
+  document.querySelectorAll(".buddy-spoken-word.is-speaking").forEach(el=>el.classList.remove("is-speaking"));
+  speakBuddy(full.slice(start));
+ }
+});
 let buddyBusy=false;
 async function sendBuddy(t,mode="chat"){
  t=String(t||"").trim();if(!t||buddyBusy)return;
@@ -115,7 +150,10 @@ async function sendBuddy(t,mode="chat"){
   answer=typeof answer==="string"?answer.trim():"";
   if(!answer)throw new Error(data?.error?.message||("The AI returned no visible answer (finish reason: "+(data?.choices?.[0]?.finish_reason||"unknown")+"). Try again in a moment."));
   if(buddyReplyIsInappropriate(answer))answer=safeBuddyFallback();
-  typing.textContent=answer;
+  typing.dataset.buddySpeech=answer;
+  renderBuddyWords(typing,answer);
+  const tapHint=document.createElement("div");tapHint.className="buddy-tap-hint";tapHint.textContent=fo?"Trýst á eitt orð fyri at lurta umaftur haðani.":"Tap any word to replay from there.";
+  typing.append(tapHint);
   const refs=extractBibleReferences(answer);
   const refLine=document.createElement("div");refLine.className="buddy-reference-line";
   refLine.textContent=refs.length?(fo?"Bíbliu-tilvísingar: ":"Bible references: ")+refs.join(", "):(fo?"Eingin beinleiðis bíbliu-tilvísing nevnd.":"No specific Bible passage cited.");
