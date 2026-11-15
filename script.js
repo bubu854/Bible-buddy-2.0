@@ -630,4 +630,29 @@ page("home");
   try{if(navigator.share)await navigator.share({title:g.name,text});else{await navigator.clipboard.writeText(text);toast(say("Study copied to clipboard.","Lesnaður avritaður."))}}catch(e){if(e.name!=="AbortError")toast(say("Could not share this study.","Kundi ikki deila lesnaðin."))}
  });
  renderGroups();
+
+ // First-visit Buddy tutorial; can also be replayed from Settings.
+ const buddyTutorialSteps = [
+ ["Meet Buddy!","I'm your Bible study companion. Ask me about God, Jesus and the Bible.","Hey! Eg eri tín bíbliufelagi. Spyr meg um Gud, Jesus og Bíbliuna."],
+ ["Ask anything","Type a question in the chat, or use the microphone option when available.","Skriva ein spurning í kjattið, ella brúka mikrofonina, tá hon er tøk."],
+ ["Explore Buddy tools","Try Bible explanations, faith conversations, memory practice and deep Bible study.","Royn bíbliufrágreiðingar, samrøður, minnivenjing og djúpan bíbliulestur."],
+ ["You're ready!","You can replay this guide anytime from Settings → Buddy tutorial.","Tú ert klár/ur! Sí vegleiðingina aftur undir Stillingar → Buddy-vegleiðing."]
+ ];
+ let buddyTutorialStep = 0;
+ function renderBuddyTutorialStep(){
+  const step=buddyTutorialSteps[buddyTutorialStep], far=fo();
+  $("#buddyTutorialProgress").textContent=(buddyTutorialStep+1)+" / "+buddyTutorialSteps.length;
+  $("#buddyTutorialTitle").textContent=far?step[2]:step[0];
+  $("#buddyTutorialText").textContent=far?step[2]:step[1];
+  $("#buddyTutorialBack").hidden=buddyTutorialStep===0;
+  $("#buddyTutorialNext").textContent=buddyTutorialStep===buddyTutorialSteps.length-1?(far?"Latið aftur":"Finish"):(far?"Næsta":"Next");
+ }
+ function showBuddyTutorial(){const m=$("#buddyTutorial");if(!m)return;buddyTutorialStep=0;renderBuddyTutorialStep();m.hidden=false;}
+ function closeBuddyTutorial(){const m=$("#buddyTutorial");if(m)m.hidden=true;store.set("buddy_tutorial_seen",true);}
+ $("#buddyTutorialSkip")?.addEventListener("click",closeBuddyTutorial);
+ $("#buddyTutorialBack")?.addEventListener("click",()=>{if(buddyTutorialStep>0){buddyTutorialStep--;renderBuddyTutorialStep();}});
+ $("#buddyTutorialNext")?.addEventListener("click",()=>{if(buddyTutorialStep<buddyTutorialSteps.length-1){buddyTutorialStep++;renderBuddyTutorialStep();}else closeBuddyTutorial();});
+ $("#replayBuddyTutorial")?.addEventListener("click",showBuddyTutorial);
+ if(!store.get("buddy_tutorial_seen",false))showBuddyTutorial();
+ 
 })();
