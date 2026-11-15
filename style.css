@@ -470,3 +470,24 @@ button:focus-visible{outline:2px solid #f0d28a;outline-offset:3px}
 .chat-form input{border:1px solid rgba(212,180,107,.32)!important;background:#080808!important}
 .chat-form button[type="submit"]{width:47px;min-width:47px;border-radius:12px}
 .danger-btn{border-color:#8d5555!important;color:#f0b8bd!important}
+
+
+/* Voice and chat layout fixes for narrow iPhone screens */
+#buddy-page .chat-messages,
+#buddy-page .chat-bubble,
+#buddy-page .buddy-message,
+#buddy-page .user-message{box-sizing:border-box;max-width:100%;min-width:0;overflow-wrap:anywhere;word-break:normal;white-space:pre-wrap}
+#buddy-page .chat-messages{width:100%;overflow-x:hidden}
+#buddy-page .chat-form{display:grid;grid-template-columns:minmax(0,1fr) 46px;gap:8px;width:100%;min-width:0;box-sizing:border-box}
+#buddy-page .chat-form #buddyListenButton{grid-column:1/-1;width:100%;min-width:0;white-space:normal;min-height:48px}
+#buddy-page .chat-form #chatInput{grid-column:1;min-width:0;width:100%;max-width:100%;box-sizing:border-box;font-size:14px}
+#buddy-page .chat-form button[type="submit"]{grid-column:2;width:46px;min-width:46px}
+#buddy-page .buddy-live-voice{min-width:0;box-sizing:border-box}
+#buddy-page .buddy-live-voice>div{min-width:0;overflow-wrap:anywhere}
+@media(max-width:360px){
+ #buddy-page .buddy-character-card{align-items:flex-start}
+ #buddy-page .buddy-character{flex-basis:92px;max-width:92px}
+ #buddy-page .buddy-character svg{width:96px}
+ #buddy-page .buddy-character-copy{min-width:0}
+ #buddy-page .buddy-voice-controls button{padding:8px;font-size:9px}
+}
