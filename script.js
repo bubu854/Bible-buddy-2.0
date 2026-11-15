@@ -142,8 +142,8 @@ async function sendBuddy(t,mode="chat"){
  buddyBusy=true;
  const form=$("#chatForm"),sendButton=form?.querySelector('button[type="submit"],button:not([type])');if(sendButton)sendButton.disabled=true;
  const system=fo
- ? "Tú eitur Buddy og ert ein blíður, hjálpsamur Bíbliu-lestrarhjálpari. Svara á føroyskum (føroyskt mál). Greið frá Bíbliuversum í greiðum máli, gev samanhang og nevna bók, kapittul og vers, tá tað er viðkomandi. Enda við einari stuttari linju: Bíbliu-tilvísingar: [neyvar bók/kapittul/vers-tilvísingar úr svarinum]; um eingin beinleiðis tilvísing er viðkomandi, sig tað. Ver virðiligur móti kristnum trúarspurningum. Um tú ikki veitst nakað, sig tað. Finn ikki uppá beinleiðis Bíbliu-tilvitnanir. Tú ert ikki prestur ella gudfrøðiligur myndugleiki. Halt altíð innihaldið hóskandi fyri øll: brúka ikki banniorð, kynsliga eksplisitt innihald, hatursmál, happing, hóttanir, grafiskt harðskaparligt innihald ella vegleiðing til at skaða fólk. Um onkur biður um slíkt, nokta stutt og vinarliga og vend aftur til eitt trygt evni. Tú kanst greiða frá truplum bíbliusøgum á sakligan og ikki-grafiskan hátt."
- : "You are Buddy, a kind and helpful Bible study companion. Answer in clear English. Explain Bible passages with context, mention book, chapter and verse when relevant, and be respectful of Christian beliefs and different interpretations. End every answer with a short line, “Bible references: …”, listing the exact book/chapter/verse references discussed; if none apply, say “No specific Bible passage cited.” Never invent a reference. If unsure, say so. Never invent direct Bible quotations. You are not a pastor or theological authority. Keep every reply suitable for a general audience: no profanity, sexually explicit content, hate speech, bullying, threats, graphic violence, or instructions for harming anyone. If asked for such content, briefly and kindly refuse and redirect to a safe topic. You may discuss difficult biblical events factually and non-graphically.";
+ ? "Tú eitur Buddy og ert ein blíður, hjálpsamur Bíbliu-lestrarhjálpari. Svara á føroyskum (føroyskt mál). Greið frá Bíbliuversum í greiðum máli, gev samanhang og nevna bók, kapittul og vers, tá tað er viðkomandi. Nevn neyvar bíbliu-tilvísingar natúrliga, tá tú vísir til ávís bíbliuørindi; legg ikki eina serliga tilvísingarlinju afturat, tá eingin ávís tilvísing er nevnd. Ver virðiligur móti kristnum trúarspurningum. Um tú ikki veitst nakað, sig tað. Finn ikki uppá beinleiðis Bíbliu-tilvitnanir. Tú ert ikki prestur ella gudfrøðiligur myndugleiki. Halt altíð innihaldið hóskandi fyri øll: brúka ikki banniorð, kynsliga eksplisitt innihald, hatursmál, happing, hóttanir, grafiskt harðskaparligt innihald ella vegleiðing til at skaða fólk. Um onkur biður um slíkt, nokta stutt og vinarliga og vend aftur til eitt trygt evni. Tú kanst greiða frá truplum bíbliusøgum á sakligan og ikki-grafiskan hátt."
+ : "You are Buddy, a kind and helpful Bible study companion. Answer in clear English. Explain Bible passages with context, mention book, chapter and verse when relevant, and be respectful of Christian beliefs and different interpretations. Mention exact Bible references naturally when you cite specific passages; do not add a references footer when no specific passage is cited. Never invent a reference. If unsure, say so. Never invent direct Bible quotations. You are not a pastor or theological authority. Keep every reply suitable for a general audience: no profanity, sexually explicit content, hate speech, bullying, threats, graphic violence, or instructions for harming anyone. If asked for such content, briefly and kindly refuse and redirect to a safe topic. You may discuss difficult biblical events factually and non-graphically.";
  const modeInstruction=mode==="deep-study"
  ? (fo?" Hetta er ein djúp bíbliugransking: skriva eina væl skipaða, gjøgnumarbeidda greining við yvirskriftum fyri samanhang, tekstbygnað, høvuðstema, vers-fyri-vers frágreiðing har hóskandi, aðrar bíbliu-tilvísingar, tulkingar og praktiska nýtslu. Brúka umleið 500-800 orð, men ver greið/ur. Skil týðiliga millum tekst og tulking. Uppfinn ikki fakta ella sitat.":" This is a DEEP STUDY, not a normal chat reply. Give a thorough, structured study with headings: context and original audience, literary structure, key themes, verse-by-verse explanation where appropriate, connected passages, interpretive views, and practical application. Aim for 500-800 words when the passage supports it. Clearly separate what the text says from interpretation. Never invent facts or quotations.")
  : mode==="sermon" ? (fo?" Greina avskriftina gjølla, men greið og skipað.":" Analyze the transcript thoroughly but keep the breakdown clear and organized.")
@@ -165,9 +165,11 @@ async function sendBuddy(t,mode="chat"){
   const tapHint=document.createElement("div");tapHint.className="buddy-tap-hint";tapHint.textContent=fo?"Trýst á eitt orð fyri at lurta umaftur haðani.":"Tap any word to replay from there.";
   typing.append(tapHint);
   const refs=extractBibleReferences(answer);
-  const refLine=document.createElement("div");refLine.className="buddy-reference-line";
-  refLine.textContent=refs.length?(fo?"Bíbliu-tilvísingar: ":"Bible references: ")+refs.join(", "):(fo?"Eingin beinleiðis bíbliu-tilvísing nevnd.":"No specific Bible passage cited.");
-  typing.append(refLine);
+  if(refs.length){
+   const refLine=document.createElement("div");refLine.className="buddy-reference-line";
+   refLine.textContent=(fo?"Bíbliu-tilvísingar: ":"Bible references: ")+refs.join(", ");
+   typing.append(refLine);
+  }
   buddyLastSpeech=answer;
   buddyCurrentMessage=typing;
   // Automatically read every answer aloud; the Speak button remains available.
@@ -183,6 +185,37 @@ async function sendBuddy(t,mode="chat"){
   $("#chatInput").value="";box.scrollTop=box.scrollHeight;
  }
 }
+
+function renderBuddySavedChats(){
+ const list=$("#buddySavedChats");if(!list)return;
+ const chats=store.get("buddy_saved_chats",[]);list.replaceChildren();
+ if(!chats.length){const empty=document.createElement("p");empty.className="small-note";empty.textContent="No saved chats yet.";list.append(empty);return;}
+ chats.slice().reverse().forEach(chat=>{
+  const item=document.createElement("div");item.className="buddy-saved-item";
+  const title=document.createElement("div");title.className="buddy-saved-item-title";
+  title.textContent=chat.title+" · "+new Date(chat.savedAt).toLocaleString();
+  const actions=document.createElement("div");actions.className="buddy-saved-item-actions";
+  const open=document.createElement("button");open.type="button";open.className="secondary-btn";open.textContent="Open";
+  open.addEventListener("click",()=>{const box=$("#chatMessages");box.replaceChildren();(chat.messages||[]).forEach(m=>{const bubble=document.createElement("div");bubble.className="chat-bubble "+(m.role==="user"?"user-message":"buddy-message");if(m.role==="buddy"){bubble.dataset.buddySpeech=m.text;renderBuddyWords(bubble,m.text)}else bubble.textContent=m.text;box.append(bubble)});box.scrollTop=box.scrollHeight;toast("Saved chat opened");});
+  const del=document.createElement("button");del.type="button";del.className="secondary-btn danger-btn";del.textContent="Delete";
+  del.addEventListener("click",()=>{const next=store.get("buddy_saved_chats",[]).filter(x=>x.id!==chat.id);store.set("buddy_saved_chats",next);renderBuddySavedChats();toast("Saved chat deleted");});
+  actions.append(open,del);item.append(title,actions);list.append(item);
+ });
+}
+$("#saveBuddyChat")?.addEventListener("click",()=>{
+ const messages=[...$("#chatMessages").children].filter(el=>el.classList.contains("user-message")||el.classList.contains("buddy-message")).map(el=>({role:el.classList.contains("user-message")?"user":"buddy",text:el.dataset.buddySpeech||el.textContent.trim()})).filter(m=>m.text);
+ if(!messages.length){toast("There is no chat to save yet");return;}
+ const chats=store.get("buddy_saved_chats",[]);
+ const first=messages.find(m=>m.role==="user")?.text||"Conversation with Buddy";
+ chats.push({id:Date.now().toString(),title:first.slice(0,64),savedAt:new Date().toISOString(),messages});
+ store.set("buddy_saved_chats",chats.slice(-30));renderBuddySavedChats();toast("Chat saved on this device");
+});
+$("#deleteBuddyChats")?.addEventListener("click",()=>{
+ if(!confirm("Delete all saved past chats with Buddy? This cannot be undone."))return;
+ store.set("buddy_saved_chats",[]);renderBuddySavedChats();toast("All saved past chats deleted");
+});
+renderBuddySavedChats();
+
 $("#chatForm").addEventListener("submit",e=>{e.preventDefault();sendBuddy($("#chatInput").value)});$$(".prompt-chip").forEach(b=>b.onclick=()=>sendBuddy(b.textContent));
 const quiz=[["Who built the ark?",["Noah","Moses","David"],0],["Who defeated Goliath?",["Saul","David","Solomon"],1],["Where was Jesus born?",["Nazareth","Jerusalem","Bethlehem"],2],["Who was swallowed by a great fish?",["Jonah","Peter","Paul"],0],["What is the first book of the Bible?",["Exodus","Genesis","Psalms"],1]];let qi=0,answered=false,score=0;
 function drawQuiz(){const q=quiz[qi];$("#quizProgress").textContent="QUESTION "+(qi+1)+" OF "+quiz.length;$("#quizQuestion").textContent=q[0];$("#quizAnswers").innerHTML=q[1].map((a,i)=>'<button class="quiz-answer" data-answer="'+i+'">'+a+'</button>').join("");$("#quizFeedback").textContent="";$("#quizNext").disabled=true;$("#quizNext").textContent=qi===quiz.length-1?"Finish quiz":"Next question";answered=false}
