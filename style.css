@@ -203,3 +203,5 @@ body.bb-photo-background{background:#07101e!important;background-image:linear-gr
 
 /* Responsive verse wallpaper preview */
 canvas.bb-wallpaper{display:block;box-sizing:border-box;width:min(100%,340px)!important;max-width:340px!important;height:auto!important;min-height:0!important;max-height:none!important;aspect-ratio:9/16;object-fit:fill;margin:14px auto;padding:0;border:1px solid #d4b46b;border-radius:14px;background:#07101e;box-shadow:0 8px 24px #0005;overflow:hidden}
+
+.study-topic-group{margin-top:14px;padding-top:11px;border-top:1px solid var(--line)}.study-topic-group>strong{display:block;color:var(--gold2);font-size:12px;margin-bottom:2px}.study-topic-group .prompt-chips{flex-wrap:wrap;overflow:visible;padding:8px 0 2px}.study-topic-group .prompt-chip{white-space:normal;text-align:left;line-height:1.35}
