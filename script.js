@@ -37,7 +37,7 @@ function speakBuddy(text,withStudyPauses=false){
  if(!("speechSynthesis" in window)){toast("Speech is not supported in this browser");return}
  window.speechSynthesis.cancel();
  try{window.speechSynthesis.resume()}catch(e){}
- const fo=$("#languageSelect")?.value!=="English";
+ const fo=$("#languageSelect")?.value==="Faroese (Føroyskt)";
  const voiceList=window.speechSynthesis.getVoices();
  const selectedVoice=store.get("buddy_voice","");
  const selected=voiceList.find(v=>v.voiceURI===selectedVoice);
@@ -267,6 +267,7 @@ page("home");
  function updateChapters(){chapter.innerHTML="";const selected=booksForTranslation.find(x=>x.id===book.value);if(!selected)return;for(let n=selected.firstChapterNumber||1;n<=(selected.lastChapterNumber||selected.numberOfChapters||1);n++)chapter.add(new Option("Chapter "+n,n))}
  async function loadBooks(){
   const id=language.value;
+  if(id.startsWith("__EN_")){const code=id.replace("__EN_","").replace("__","");const links={ESV:"https://www.biblegateway.com/versions/English-Standard-Version-ESV-Bible/",KJV:"https://www.biblegateway.com/versions/King-James-Version-KJV-Bible/",NIV:"https://www.biblegateway.com/versions/New-International-Version-NIV-Bible/"};currentTranslation=null;area.innerHTML="<h2>"+code+"</h2><p>"+code+" is not available in the built-in Bible source yet. Open the translation online here:</p><p><a class='primary-btn' href='"+links[code]+"' target='_blank' rel='noopener'>Open "+code+"</a></p>";return}
   if(id==="__FAROESE_OFFICIAL__"){currentTranslation=null;renderFaroeseFallback();return}
   currentTranslation=translations.find(t=>t.id===id);if(!currentTranslation)return;
   rememberTranslation(id);
@@ -314,16 +315,20 @@ page("home");
    if(!translations.length)throw new Error("No translations returned");
    language.innerHTML="";
    const byName=(x,y)=>(x.name||x.englishName||x.id).localeCompare(y.name||y.englishName||y.id);
-   const english=translations.filter(t=>(t.language||"").toLowerCase()==="eng").sort((x,y)=>(x.id==="WEB"?-1:y.id==="WEB"?1:byName(x,y)));
+   const englishWanted=[["ESV",/\bESV\b|English Standard Version/i],["KJV",/\bKJV\b|King James Version/i],["NIV",/\bNIV\b|New International Version/i]];
+   const english=[];
+   const englishGroup=document.createElement("optgroup");englishGroup.label="English";
+   englishWanted.forEach(([label,re])=>{const found=translations.find(t=>(t.language||"").toLowerCase()==="eng"&&re.test([t.id,t.name,t.shortName,t.englishName].join(" ")));const value=found?found.id:"__EN_"+label+"__";englishGroup.append(new Option(label+(found?"":" — open online"),value));});
+   language.append(englishGroup);
    const recent=recentIds().map(id=>translations.find(t=>t.id===id)).filter(Boolean).filter(t=>!["eng","fao"].includes((t.language||"").toLowerCase()));
    const majorCodes=["spa","fra","fre","deu","ger","por","rus","ara","zho","chi","hin","jpn","kor","swa","ind","ita","nld","tur","urd","ben","tam","tha","vie"];
    const major=translations.filter(t=>majorCodes.includes((t.language||"").toLowerCase())&&!recent.some(r=>r.id===t.id)).sort((x,y)=>(x.languageName||"").localeCompare(y.languageName||"")||byName(x,y));
    const fao=translations.filter(t=>(t.language||"").toLowerCase()==="fao").sort(byName);
    const other=translations.filter(t=>!english.some(x=>x.id===t.id)&&!recent.some(x=>x.id===t.id)&&!major.some(x=>x.id===t.id)&&!fao.some(x=>x.id===t.id)).sort((x,y)=>(x.languageName||"").localeCompare(y.languageName||"")||byName(x,y));
-   addTranslationGroup("English",english);addTranslationGroup("Recent translations",recent);addTranslationGroup("Major languages",major);
+   addTranslationGroup("Recent translations",recent);addTranslationGroup("Major languages",major);
    if(fao.length)addTranslationGroup("Faroese — Føroyskt",fao);else{const group=document.createElement("optgroup");group.label="Faroese — Føroyskt";group.append(new Option("Føroyska Bíblian (Faroese Bible Society)","__FAROESE_OFFICIAL__"));language.append(group)}
    addTranslationGroup("All other languages",other);
-   const preferred=english.find(t=>t.id==="WEB")||english[0];language.value=preferred?.id||translations[0].id;
+   language.value=englishGroup.querySelector("option")?.value||translations[0].id;
    await loadBooks();
   }catch(e){area.innerHTML="<p>Could not load the Bible translation catalogue. Check your connection and reload the page.</p>"}
  }
@@ -370,7 +375,7 @@ page("home");
   if(node.tagName==="OPTION"){if(!node.hasAttribute("data-en-label"))node.setAttribute("data-en-label",node.textContent);const raw=node.getAttribute("data-en-label"),next=fo?(dict[raw]||bookNames[raw]||raw):raw;if(node.textContent!==next)node.textContent=next;}
   node.childNodes.forEach(c=>walk(c,fo));
  }
- function apply(){const fo=picker.value!=="English";document.documentElement.lang=fo?"fo":"en";walk(document.body,fo);
+ function apply(){const fo=picker.value==="Faroese (Føroyskt)";document.documentElement.lang=fo?"fo":"en";walk(document.body,fo);
   const bibleLang=document.querySelector("#bibleLanguageSelect");if(bibleLang){const v=fo?"fo":"en";if(bibleLang.value!==v){bibleLang.value=v;bibleLang.dispatchEvent(new Event("change"));}}
   document.querySelectorAll("#bookSelect option").forEach(o=>o.textContent=fo?(bookNames[o.value]||o.value):o.value);
  }
@@ -384,7 +389,7 @@ page("home");
 /* Version 22: daily reading habit, chapter search and study notes */
 (function(){
  const $=s=>document.querySelector(s);
- const isFo=()=>$("#languageSelect")?.value!=="English";
+ const isFo=()=>$("#languageSelect")?.value==="Faroese (Føroyskt)";
  const words={
   en:{streak:"Your reading streak",done:"Mark today's reading complete",days:"day streak",total:"chapters completed",search:"Search this chapter…",notes:"Chapter study notes",placeholder:"Write what stood out, questions, or what you want to remember…",save:"Save chapter notes",saved:"Notes saved on this device.",empty:"No notes saved for this chapter yet.",complete:"Today's reading marked complete!",already:"Today's reading is already complete.",noMatch:"No matching verses in this chapter."},
   fo:{streak:"Títt lesistrik",done:"Merk dagsins lesnað sum liðnan",days:"dagar á rað",total:"kapitlar lisnir",search:"Leita í hesum kapitlinum…",notes:"Notur til kapitlið",placeholder:"Skriva tað, sum gjørdi inntrykk, spurningar ella tað, tú vilt minnast…",save:"Goym notur til kapitlið",saved:"Notur eru goymdar á hesi telefonini.",empty:"Eingir notur eru goymdar til hetta kapitlið enn.",complete:"Dagsins lesnaður er merktur sum liðugur!",already:"Dagsins lesnaður er longu liðugur.",noMatch:"Einki vers samsvarar við leitingina."}
