@@ -280,3 +280,54 @@ canvas.bb-wallpaper{display:block;box-sizing:border-box;width:min(100%,340px)!im
 .bb-own-post p{margin:7px 0;color:var(--text);font-size:13px;line-height:1.5}
 .bb-own-post small{color:var(--muted);font-size:10px}
 @media(max-width:370px){.bb-video-list{grid-template-columns:1fr}}
+
+/* Bible Buddy social profile — clean Instagram-style black and gold */
+.bb-community-page{max-width:620px;margin:0 auto}
+.bb-community-page #community-tools,.bb-community-page #community-feed-panel,.bb-community-page #community-follow-panel,.bb-community-page #community-groups-panel{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding:0!important;margin:0!important}
+.bb-community-page .bb-profile-top{background:#050505!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding:0 0 14px!important;overflow:visible}
+.bb-community-page .bb-profile-cover{height:72px;margin:0;background:linear-gradient(110deg,#080808,#17130a 55%,#050505)!important;border:0!important}
+.bb-community-page .bb-profile-settings-btn{background:#090909;border:1px solid #b89543;color:#e8c66f;box-shadow:none}
+.bb-community-page .bb-profile-avatar-wrap{width:94px;height:94px;flex-basis:94px;border:3px solid #070707;background:#17130a;color:#e8c66f;box-shadow:0 0 0 2px #b89543}
+.bb-community-page .bb-profile-identity{margin-top:-44px;gap:13px}
+.bb-community-page .bb-profile-heading{padding-top:48px}
+.bb-community-page .bb-profile-heading h2{font-size:21px;color:#fff}
+.bb-community-page .bb-profile-heading p{color:#c5a65c}
+.bb-community-page .bb-profile-heading small{color:#d8d3c7}
+.bb-community-page .bb-photo-button{align-self:flex-end;margin:0 0 4px;background:#17130a;border:1px solid #8e7135;color:#f0d68b;border-radius:7px;padding:8px 10px;font-size:11px}
+.bb-community-page .bb-profile-stats{justify-content:space-around;margin:17px 0}
+.bb-community-page .bb-profile-stats strong{font-size:18px;color:#fff}
+.bb-community-page .bb-profile-stats span{font-size:11px;color:#c4bda9}
+.bb-community-page .bb-profile-actions{gap:8px}
+.bb-community-page .bb-profile-actions button{background:#17130a!important;border:1px solid #8e7135!important;border-radius:7px!important;color:#f4e5bd!important;box-shadow:none}
+.bb-community-page .bb-stories-strip{gap:17px;padding:18px 0 16px;border-bottom:1px solid #292318}
+.bb-community-page .bb-story-add,.bb-community-page .bb-story-ring{background:#090909;border:2px solid #b89543;color:#edcf83}
+.bb-community-page .bb-stories-strip small{color:#c9c0ab}
+.bb-community-page .bb-profile-tabs{border:0;border-bottom:1px solid #292318;margin-top:2px;padding:10px 0}
+.bb-community-page .bb-profile-tabs button{color:#a9a39a}
+.bb-community-page .bb-profile-tabs button.active{color:#f0d68b;border-bottom:2px solid #d0ad58}
+.bb-community-page .bb-profile-tab-content{padding:8px 0 20px}
+.bb-community-page .bb-pinned-heading{color:#e8c66f}
+.bb-community-page .bb-pinned-preview,.bb-community-page .bb-own-post,.bb-community-page .bb-profile-extra-grid>div{background:transparent!important;border:0!important;border-bottom:1px solid #292318!important;border-radius:0!important;padding:13px 0!important;color:#e9e5dc}
+.bb-community-page .bb-own-post p{color:#f3eee3}
+.bb-community-page .bb-fav-verse{margin:16px 0;padding:14px 0;border-top:1px solid #292318;border-bottom:1px solid #292318;background:transparent}
+.bb-community-page .bb-fav-verse span{display:block;color:#c3a45b;font-size:10px;letter-spacing:.12em;margin-bottom:7px}
+.bb-community-page .bb-fav-verse strong{color:#fff;font-family:Georgia,serif;font-size:17px}
+.bb-community-page .bb-profile-settings{background:#080808!important;border:1px solid #554522!important;border-radius:10px!important;box-shadow:none!important}
+.bb-community-page .bb-profile-settings input:not([type=checkbox]),.bb-community-page .bb-profile-settings textarea,.bb-community-page .bb-profile-settings select{background:#101010!important;border:1px solid #393124!important;border-radius:7px!important;color:#fff}
+.bb-community-page .bb-profile-settings label{color:#d9bb6c}
+.bb-community-page .bb-profile-settings .primary-btn,.bb-community-page .bb-compose .primary-btn{background:#c7a451;color:#080808;border:0}
+.bb-community-page .bb-status{min-height:0;margin:4px 0 8px;color:#e4c46d;font-size:12px}
+.bb-community-page .bb-status:empty{display:none}
+.bb-community-page .bb-feed-panel{padding:20px 0 8px!important;background:transparent!important;border:0!important;border-top:1px solid #292318!important;border-radius:0!important;box-shadow:none!important}
+.bb-community-page .bb-compose{padding:14px 0;border-bottom:1px solid #292318}
+.bb-community-page .bb-compose h3,.bb-community-page .bb-feed-heading h3{font-size:15px;color:#e8c66f;margin:0 0 12px}
+.bb-community-page .bb-compose input,.bb-community-page .bb-compose textarea{width:100%;background:#101010;border:1px solid #393124;border-radius:8px;color:#fff;padding:12px;margin:0 0 9px;font:inherit}
+.bb-community-page .bb-compose .primary-btn{border-radius:7px;padding:10px 20px;font-weight:700}
+.bb-community-page .bb-feed-heading{display:flex;align-items:center;justify-content:space-between;padding:16px 0 8px}
+.bb-community-page .community-post{padding:15px 0!important;margin:0!important;background:transparent!important;border:0!important;border-bottom:1px solid #292318!important;border-radius:0!important;box-shadow:none!important}
+.bb-community-page .community-post strong{color:#f5e5bc}
+.bb-community-page .community-post p{color:#f5f1e8;line-height:1.55}
+.bb-community-page .community-post button{background:transparent;border:1px solid #67532b;color:#e5c879;border-radius:7px;padding:7px 11px}
+.bb-community-page .bb-profile-extra-grid>div{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.bb-community-page .bb-video-upload{background:transparent;border:1px solid #8e7135;color:#e8c66f;border-radius:7px}
+@media(max-width:420px){.bb-community-page .bb-profile-heading{flex-basis:calc(100% - 115px)}.bb-community-page .bb-photo-button{margin-left:auto}}
