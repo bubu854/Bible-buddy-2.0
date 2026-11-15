@@ -249,3 +249,34 @@ canvas.bb-wallpaper{display:block;box-sizing:border-box;width:min(100%,340px)!im
 .bb-profile-extra-grid strong{font-size:11px;color:#e8ce8b}
 .bb-profile-extra-grid span{font-size:11px;color:#aebbd0}
 @media(max-width:370px){.bb-profile-extra-grid{grid-template-columns:1fr}.bb-photo-button{font-size:10px;padding:8px}}
+
+
+/* Bible Buddy profile: match the app's black, navy and gold design */
+.bb-profile-top{background:linear-gradient(145deg,var(--panel2),var(--panel));border-color:var(--line);box-shadow:0 12px 30px #0004}
+.bb-profile-cover{background:radial-gradient(circle at 78% 12%,#d4b46b44,transparent 27%),linear-gradient(120deg,#14294a,#03060d 85%);border-bottom-color:#d4b46b55}
+.bb-profile-avatar-wrap{border-color:var(--panel);background:linear-gradient(135deg,#244b7d,#0b1425);color:var(--gold2)}
+.bb-profile-settings-btn{background:var(--panel);border-color:#d4b46b88;color:var(--gold2)}
+.bb-profile-actions .secondary-btn,.bb-profile-settings .secondary-btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:11px}
+.bb-profile-tabs{border-color:var(--line)}
+.bb-profile-tabs button{color:var(--muted);background:transparent}
+.bb-profile-tabs button.active{color:var(--gold2);border-bottom-color:var(--gold)}
+.bb-pinned-preview,.bb-profile-extra-grid>div{background:var(--panel);border-color:var(--line);color:var(--muted)}
+.bb-fav-verse{background:linear-gradient(120deg,var(--panel2),var(--panel));border-color:#d4b46b66}
+.bb-achievements span{background:var(--panel2);border-color:var(--line);color:var(--gold2)}
+.bb-profile-settings{background:linear-gradient(145deg,var(--panel2),var(--panel));border-color:#d4b46b66}
+.bb-profile-settings input:not([type=checkbox]),.bb-profile-settings textarea,.bb-profile-settings select{background:var(--bg);border-color:var(--line);color:var(--text)}
+.bb-story-item{display:grid;justify-items:center;gap:5px;min-width:55px}
+.bb-story-thumb{width:100%;height:100%;border-radius:50%;object-fit:cover}
+.bb-story-viewer{position:fixed;inset:0;z-index:1000;background:#02050df5;display:flex;align-items:center;justify-content:center;padding:20px}
+.bb-story-viewer.hidden{display:none}
+.bb-story-viewer>img{max-width:min(100%,520px);max-height:85vh;object-fit:contain;border-radius:18px}
+.bb-story-close{position:absolute;right:20px;top:calc(20px + env(safe-area-inset-top));width:44px;height:44px;border-radius:50%;border:1px solid #d4b46b88;background:var(--panel);color:var(--text);font-size:28px}
+.bb-video-upload{display:inline-flex;align-items:center;justify-content:center;padding:11px 15px;margin:12px 0;border:1px solid #d4b46b88;border-radius:12px;background:var(--panel2);color:var(--gold2);font-weight:700;font-size:12px;cursor:pointer}
+.bb-video-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.bb-video-card{min-width:0;padding:8px;border:1px solid var(--line);border-radius:13px;background:var(--panel)}
+.bb-video-card video{width:100%;max-height:250px;border-radius:9px;background:#000}
+.bb-video-card small{display:block;overflow-wrap:anywhere;color:var(--muted);margin-top:6px}
+.bb-own-post{padding:12px;margin:8px 0;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.bb-own-post p{margin:7px 0;color:var(--text);font-size:13px;line-height:1.5}
+.bb-own-post small{color:var(--muted);font-size:10px}
+@media(max-width:370px){.bb-video-list{grid-template-columns:1fr}}
