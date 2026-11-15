@@ -544,3 +544,40 @@ button:focus-visible{outline:2px solid #f0d28a;outline-offset:3px}
  #buddy-page .buddy-tool-button{min-height:82px;padding:10px;font-size:10px}
 }
 @media(max-width:350px){#buddy-page .buddy-character-card{grid-template-columns:1fr}#buddy-page .buddy-character{max-width:118px}}
+
+
+/* Buddy page redesign v2 — text-first composer with optional voice */
+#buddy-page{max-width:790px}
+#buddy-page>.page-heading{padding:25px 22px 22px;border-radius:25px;background:radial-gradient(circle at 88% 12%,rgba(224,190,112,.19),transparent 34%),linear-gradient(135deg,#1b1710 0%,#0b0b0c 65%,#15110a 100%);border:1px solid rgba(224,190,112,.42);box-shadow:0 18px 42px #0006}
+#buddy-page>.page-heading:after{font-size:76px;right:18px;top:12px;opacity:.75}
+#buddy-page>.page-heading h1{font-size:clamp(34px,8vw,48px);letter-spacing:-1.7px}
+#buddy-page .buddy-character-card{grid-template-columns:118px minmax(0,1fr);gap:18px;padding:18px;border-radius:24px;background:linear-gradient(145deg,#1c1a16,#090909 72%);border:1px solid rgba(224,190,112,.45);box-shadow:0 16px 36px #0007}
+#buddy-page .buddy-character{max-width:118px}
+#buddy-page .buddy-character-copy>strong{font-size:24px;color:#f5e6c2}
+#buddy-page .buddy-character-copy>p{font-size:13px}
+#buddy-page .buddy-voice-controls button{border-radius:999px;min-height:38px}
+#buddy-page .prompt-chips{padding:15px 2px 18px}
+#buddy-page .prompt-chip{background:#17140e;border-color:#806b3e;color:#f2d99f}
+#buddy-page .buddy-tools-panel{padding:18px;border-radius:22px}
+#buddy-page .buddy-tools-grid{gap:10px}
+#buddy-page .buddy-tool-button{min-height:84px;border-radius:16px;background:linear-gradient(145deg,#1b1915,#0b0b0b)!important;border-color:rgba(224,190,112,.35)!important;font-size:12px}
+#buddy-page .chat-messages{min-height:170px;max-height:440px;padding:16px;border-radius:20px;background:radial-gradient(ellipse at top left,#211b10,#0b0b0b 72%);border-color:rgba(224,190,112,.4)}
+#buddy-page .chat-bubble{font-size:14px;line-height:1.65;padding:13px 15px;border-radius:17px}
+#buddy-page .buddy-live-voice{margin-top:13px;border-radius:17px;padding:14px;background:linear-gradient(120deg,#211a0d,#0d0d0d);border-color:rgba(224,190,112,.4)}
+#buddy-page .chat-form{display:grid!important;grid-template-columns:minmax(0,1fr) 48px!important;grid-template-areas:"text send" "voice voice";gap:9px!important;margin-top:12px;padding:12px!important;border:1px solid rgba(224,190,112,.48)!important;border-radius:20px!important;background:linear-gradient(145deg,#1a1711,#090909)!important;box-shadow:0 12px 30px #0005}
+#buddy-page .chat-form #chatInput{grid-area:text!important;width:100%!important;min-width:0!important;min-height:48px!important;padding:12px 14px!important;border:1px solid rgba(224,190,112,.35)!important;border-radius:13px!important;background:#080808!important;color:#fff!important;font-size:14px!important;box-sizing:border-box}
+#buddy-page .chat-form button[type="submit"]{grid-area:send!important;width:48px!important;min-width:48px!important;height:48px!important;border-radius:13px!important;font-size:20px!important}
+#buddy-page .chat-form #buddyListenButton{grid-area:voice!important;width:100%!important;min-height:46px!important;border-radius:13px!important;background:linear-gradient(145deg,#201a0e,#100e0a)!important;border:1px solid #b79654!important;color:#f3d99f!important;font-size:12px!important;letter-spacing:.02em}
+#buddy-page .chat-form #buddyListenButton span{display:inline!important}
+#buddy-page .chat-form #buddyListenButton.voice-listening{background:linear-gradient(145deg,#f5e4b8,#d4b46b)!important;color:#17120a!important}
+#buddy-page .buddy-history-actions button{min-height:43px;border-radius:13px}
+#buddy-page .buddy-saved-history{border-radius:20px}
+@media(max-width:430px){
+ #buddy-page>.page-heading{padding:22px 17px}
+ #buddy-page .buddy-character-card{grid-template-columns:88px minmax(0,1fr);gap:11px;padding:12px}
+ #buddy-page .buddy-character{max-width:88px}
+ #buddy-page .buddy-character-copy>strong{font-size:20px}
+ #buddy-page .buddy-voice-controls button{font-size:10px;min-width:0;padding:8px 7px}
+ #buddy-page .buddy-tool-button{min-height:88px;font-size:10px;padding:10px}
+ #buddy-page .chat-form{padding:9px!important}
+}
