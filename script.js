@@ -148,10 +148,10 @@ async function sendBuddy(t,mode="chat"){
  ? (fo?" Hetta er ein djúp bíbliugransking: skriva eina væl skipaða, gjøgnumarbeidda greining við yvirskriftum fyri samanhang, tekstbygnað, høvuðstema, vers-fyri-vers frágreiðing har hóskandi, aðrar bíbliu-tilvísingar, tulkingar og praktiska nýtslu. Brúka umleið 500-800 orð, men ver greið/ur. Skil týðiliga millum tekst og tulking. Uppfinn ikki fakta ella sitat.":" This is a DEEP STUDY, not a normal chat reply. Give a thorough, structured study with headings: context and original audience, literary structure, key themes, verse-by-verse explanation where appropriate, connected passages, interpretive views, and practical application. Aim for 500-800 words when the passage supports it. Clearly separate what the text says from interpretation. Never invent facts or quotations.")
  : mode==="sermon" ? (fo?" Greina avskriftina gjølla, men greið og skipað.":" Analyze the transcript thoroughly but keep the breakdown clear and organized.")
  : (fo?" Halt vanlig svar stutt og greið, vanliga 2-5 setningar og í mesta lagi umleið 100 orð. Svara skjótt og beinleiðis. Kanna stavseting, føroyska málfrøði, bendingar og teknseting væl, áðrenn tú sendir svarið. Brúka natúrligt og rætt føroyskt; skriva ikki blandingsmál.":" Keep normal replies short and direct: usually 2-5 sentences and under 100 words. Answer quickly. Carefully proofread spelling, grammar, punctuation and capitalization before sending. Use natural, correct English; do not use typos, malformed words or awkward phrasing.") ;
- const history=[...box.querySelectorAll(".user-message,.buddy-message")].filter(el=>el!==typing).slice(-6).map(el=>({role:el.classList.contains("user-message")?"user":"assistant",content:el.textContent}));
+ const history=[...box.querySelectorAll(".user-message,.buddy-message")].filter(el=>el!==typing).slice(-4).map(el=>({role:el.classList.contains("user-message")?"user":"assistant",content:el.textContent}));
  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),60000);
  try{
-  const response=await fetch("https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"Meta-Llama-3_3-70B-Instruct",messages:[{role:"system",content:system+modeInstruction},...history],max_tokens:mode==="deep-study"?2400:mode==="sermon"?1800:320,temperature:0.3,stream:false}),credentials:"omit",signal:controller.signal});
+  const response=await fetch("https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"Meta-Llama-3_3-70B-Instruct",messages:[{role:"system",content:system+modeInstruction},...history],max_tokens:mode==="deep-study"?2400:mode==="sermon"?1800:220,temperature:0.25,stream:false}),credentials:"omit",signal:controller.signal});
   const raw=await response.text();let data={};try{data=raw?JSON.parse(raw):{}}catch(e){throw new Error("The AI service sent an unreadable response (HTTP "+response.status+").")}
   if(!response.ok)throw new Error(data?.error?.message||data?.message||("AI service returned HTTP "+response.status));
   const message=data?.choices?.[0]?.message;
@@ -251,25 +251,71 @@ page("home");
 (function(){
  const language=document.querySelector("#bibleLanguageSelect"),book=document.querySelector("#bookSelect"),chapter=document.querySelector("#chapterSelect"),area=document.querySelector("#readingArea"),highBtn=document.querySelector("#highlightMode");
  if(!language||!book||!chapter||!area)return;
- let highlightMode=false;
+ let highlightMode=false,translations=[],booksForTranslation=[],currentTranslation=null;
+ const api="https://bible.helloao.org/api";
  const readHighlights=()=>{try{return JSON.parse(localStorage.getItem("bb_highlights")||"[]")}catch(e){return []}};
  const writeHighlights=a=>localStorage.setItem("bb_highlights",JSON.stringify(a));
- const escText=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+ const escText=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
  function renderHighlights(){const el=document.querySelector("#highlightedVerses");if(!el)return;const items=readHighlights();el.innerHTML=items.length?items.map(x=>"<div class='saved-item'><strong>"+escText(x.ref)+"</strong><p>"+escText(x.text)+"</p><button class='delete-btn' data-unhighlight='"+encodeURIComponent(x.key)+"'>Remove highlight</button></div>").join(""):"No highlighted verses yet."}
- function showFaroese(){area.innerHTML="<h2>Føroyska Bíblian</h2><p class='muted'>Les føroysku Bíbliuna her inni í Bible Buddy.</p><div class='faroese-reader-frame'><iframe title='Føroyska Bíblian' src='https://www.skriftin.fo/' loading='lazy' referrerpolicy='strict-origin-when-cross-origin' allow='fullscreen'></iframe></div><p class='small-note'>Um síðan ikki vísir inni í appini, kanst tú lata hana upp her:</p><a class='primary-btn bible-external-link' href='https://www.skriftin.fo/' target='_blank' rel='noopener'>Lat Skriftin.fo upp ↗</a><a class='secondary-btn bible-external-link' href='https://biblia.fo/browse' target='_blank' rel='noopener'>Føroyska Bíbliufelagið ↗</a>"}
- async function loadChapter(){
-  if(language.value==="fo"){showFaroese();renderHighlights();return}
-  const name=book.value,c=chapter.value;area.innerHTML="<p class='muted'>Loading English Bible chapter…</p>";
-  try{const response=await fetch("https://bible-api.dws-cloud.com/v1/verses/"+encodeURIComponent(name+" "+c)+"?translation=web");if(!response.ok)throw new Error("Bible source unavailable");const data=await response.json(),verses=Array.isArray(data.verses)?data.verses:[];if(!verses.length)throw new Error("No verses returned");const saved=readHighlights();
-   area.innerHTML="<h2>"+escText(data.reference)+" · World English Bible</h2>"+verses.map(v=>{const key=name+"|"+c+"|"+v.verse,marked=saved.some(x=>x.key===key);return "<p class='bible-verse "+(marked?"verse-highlight":"")+"' data-verse='"+v.verse+"' data-key='"+encodeURIComponent(key)+"'><sup>"+v.verse+"</sup> "+escText(v.text)+"</p>"}).join("")+"<button type='button' class='secondary-btn' id='copyChapter'>Copy chapter</button><p class='small-note'>Turn on Highlighter, then tap a verse to save its highlight.</p>";
-   area.querySelectorAll(".bible-verse").forEach(p=>p.addEventListener("click",()=>{if(!highlightMode){toast("Turn on Highlighter to mark a verse");return}const key=decodeURIComponent(p.dataset.key),items=readHighlights(),idx=items.findIndex(x=>x.key===key);if(idx>=0){items.splice(idx,1);p.classList.remove("verse-highlight")}else{items.unshift({key,ref:name+" "+c+":"+p.dataset.verse,text:p.textContent.trim()});p.classList.add("verse-highlight")}writeHighlights(items);renderHighlights()}));
-   document.querySelector("#copyChapter").onclick=()=>navigator.clipboard?.writeText(data.reference+"\n"+verses.map(v=>v.verse+". "+v.text).join("\n")).then(()=>toast("Chapter copied")).catch(()=>toast("Copy unavailable"));renderHighlights();
-  }catch(e){area.innerHTML="<h2>"+escText(name)+" "+c+"</h2><p>Could not load the English Bible chapter. Check your internet connection and try again.</p>"}
+ function translationLabel(t){return (t.languageName||t.languageEnglishName||"Unknown language")+" — "+(t.name||t.englishName||t.id)+" ("+t.id+")"}
+ function updateChapters(){chapter.innerHTML="";const selected=booksForTranslation.find(x=>x.id===book.value);if(!selected)return;for(let n=selected.firstChapterNumber||1;n<=(selected.lastChapterNumber||selected.numberOfChapters||1);n++)chapter.add(new Option("Chapter "+n,n))}
+ async function loadBooks(){
+  const id=language.value;currentTranslation=translations.find(t=>t.id===id);if(!currentTranslation)return;
+  area.innerHTML="<p class='muted'>Loading books for "+escText(currentTranslation.name||id)+"…</p>";
+  try{
+   const r=await fetch(api+"/"+encodeURIComponent(id)+"/books.json");if(!r.ok)throw new Error("Books unavailable");
+   const data=await r.json();booksForTranslation=Array.isArray(data.books)?data.books:[];
+   if(!booksForTranslation.length)throw new Error("No books in this translation");
+   const previous=book.value;book.innerHTML="";
+   booksForTranslation.forEach(x=>book.add(new Option(x.name||x.commonName||x.id,x.id)));
+   book.value=booksForTranslation.some(x=>x.id===previous)?previous:booksForTranslation[0].id;
+   updateChapters();await loadChapter();
+  }catch(e){area.innerHTML="<p>Could not load this translation's book list. Please choose another translation or try again.</p>"}
  }
- language.addEventListener("change",loadChapter);book.addEventListener("change",loadChapter);chapter.addEventListener("change",loadChapter);
+ async function loadChapter(){
+  const tr=currentTranslation,b=booksForTranslation.find(x=>x.id===book.value),c=chapter.value;if(!tr||!b||!c)return;
+  area.innerHTML="<p class='muted'>Loading "+escText(b.name||b.id)+" "+escText(c)+"…</p>";
+  try{
+   const r=await fetch(api+"/"+encodeURIComponent(tr.id)+"/"+encodeURIComponent(b.id)+"/"+encodeURIComponent(c)+".simple.json");
+   if(!r.ok)throw new Error("Chapter unavailable");
+   const data=await r.json(),content=data?.chapter?.content||[],verses=content.filter(x=>x.type==="verse"&&x.text!=null);
+   if(!verses.length)throw new Error("No verse text returned");
+   const reference=(data.book?.name||b.name||b.id)+" "+c,saved=readHighlights();
+   const notice=tr.licenseNotice||"";
+   area.innerHTML="<h2>"+escText(reference)+" · "+escText(tr.name||tr.id)+"</h2>"+verses.map(v=>{
+    const num=v.number,key=tr.id+"|"+b.id+"|"+c+"|"+num,marked=saved.some(x=>x.key===key);
+    return "<p class='bible-verse "+(marked?"verse-highlight":"")+"' data-verse='"+escText(num)+"' data-key='"+encodeURIComponent(key)+"'><sup>"+escText(num)+"</sup> "+escText(v.text)+"</p>";
+   }).join("")+"<button type='button' class='secondary-btn' id='copyChapter'>Copy chapter</button><p class='small-note'>Turn on Highlighter, then tap a verse to save its highlight.</p>"+(notice?"<p class='small-note bible-license'>"+escText(notice)+"</p>":"")+(tr.licenseUrl?"<p class='small-note'><a href='"+escText(tr.licenseUrl)+"' target='_blank' rel='noopener'>Translation licence and attribution</a></p>":"");
+   area.querySelectorAll(".bible-verse").forEach(p=>p.addEventListener("click",()=>{
+    if(!highlightMode){toast("Turn on Highlighter to mark a verse");return}
+    const key=decodeURIComponent(p.dataset.key),items=readHighlights(),idx=items.findIndex(x=>x.key===key);
+    if(idx>=0){items.splice(idx,1);p.classList.remove("verse-highlight")}
+    else{items.unshift({key,ref:reference+":"+p.dataset.verse,text:p.textContent.trim()});p.classList.add("verse-highlight")}
+    writeHighlights(items);renderHighlights();
+   }));
+   document.querySelector("#copyChapter").onclick=()=>navigator.clipboard?.writeText(reference+"\n"+verses.map(v=>v.number+". "+v.text).join("\n")).then(()=>toast("Chapter copied")).catch(()=>toast("Copy unavailable"));
+   renderHighlights();
+  }catch(e){area.innerHTML="<h2>"+escText(b.name||b.id)+" "+escText(c)+"</h2><p>Could not load this chapter. Try another translation or check your internet connection.</p>"}
+ }
+ async function init(){
+  area.innerHTML="<p class='muted'>Loading Bible translations…</p>";
+  try{
+   const r=await fetch(api+"/available_translations.json");if(!r.ok)throw new Error("Translation list unavailable");
+   const data=await r.json();translations=Array.isArray(data.translations)?data.translations:[];
+   if(!translations.length)throw new Error("No translations returned");
+   language.innerHTML="";
+   translations.slice().sort((x,y)=>(x.languageName||"").localeCompare(y.languageName||"")||(x.name||"").localeCompare(y.name||"")).forEach(t=>language.add(new Option(translationLabel(t),t.id)));
+   const preferred=translations.find(t=>t.id==="WEB")||translations.find(t=>(t.language||"").toLowerCase()==="eng"&&/world english bible/i.test(t.name||""))||translations.find(t=>(t.language||"").toLowerCase()==="eng");
+   language.value=preferred?.id||translations[0].id;
+   await loadBooks();
+  }catch(e){area.innerHTML="<p>Could not load the Bible translation catalogue. Check your connection and reload the page.</p>"}
+ }
+ language.addEventListener("change",loadBooks);
+ book.addEventListener("change",()=>{updateChapters();loadChapter()});
+ chapter.addEventListener("change",loadChapter);
  if(highBtn)highBtn.addEventListener("click",()=>{highlightMode=!highlightMode;highBtn.textContent="Highlighter: "+(highlightMode?"ON":"OFF");highBtn.classList.toggle("highlight-active",highlightMode);highBtn.setAttribute("aria-pressed",String(highlightMode));toast(highlightMode?"Tap a verse to highlight it":"Highlighter turned off")});
- document.addEventListener("click",e=>{const b=e.target.closest("[data-unhighlight]");if(!b)return;const key=decodeURIComponent(b.dataset.unhighlight);writeHighlights(readHighlights().filter(x=>x.key!==key));renderHighlights();if(language.value==="en")loadChapter()});
- language.value="en";loadChapter();renderHighlights();
+ document.addEventListener("click",e=>{const b=e.target.closest("[data-unhighlight]");if(!b)return;const key=decodeURIComponent(b.dataset.unhighlight);writeHighlights(readHighlights().filter(x=>x.key!==key));renderHighlights();loadChapter()});
+ init();renderHighlights();
 })();
 /* Whole-app Faroese language layer */
 
