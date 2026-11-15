@@ -315,10 +315,11 @@ page("home");
    if(!translations.length)throw new Error("No translations returned");
    language.innerHTML="";
    const byName=(x,y)=>(x.name||x.englishName||x.id).localeCompare(y.name||y.englishName||y.id);
-   const englishWanted=[["ESV",/\bESV\b|English Standard Version/i],["KJV",/\bKJV\b|King James Version/i],["NIV",/\bNIV\b|New International Version/i]];
    const english=translations.filter(t=>(t.language||"").toLowerCase()==="eng");
    const englishGroup=document.createElement("optgroup");englishGroup.label="English";
-   englishWanted.forEach(([label,re])=>{const found=translations.find(t=>(t.language||"").toLowerCase()==="eng"&&re.test([t.id,t.name,t.shortName,t.englishName].join(" ")));const value=found?found.id:"__EN_"+label+"__";englishGroup.append(new Option(label+(found?"":" — open online"),value));});
+   const standardEnglish=english.find(t=>t.id==="BSB")||english[0];
+   if(standardEnglish)englishGroup.append(new Option("English Bible ("+(standardEnglish.shortName||standardEnglish.id)+")",standardEnglish.id));
+   [["KJV",/\\bKJV\\b|King James Version/i],["NIV",/\\bNIV\\b|New International Version/i]].forEach(([label,re])=>{const found=english.find(t=>re.test([t.id,t.name,t.shortName,t.englishName].join(" ")));if(found)englishGroup.append(new Option(label,found.id));});
    language.append(englishGroup);
    const recent=recentIds().map(id=>translations.find(t=>t.id===id)).filter(Boolean).filter(t=>!["eng","fao"].includes((t.language||"").toLowerCase()));
    const majorCodes=["spa","fra","fre","deu","ger","por","rus","ara","zho","chi","hin","jpn","kor","swa","ind","ita","nld","tur","urd","ben","tam","tha","vie"];
@@ -328,7 +329,7 @@ page("home");
    addTranslationGroup("Recent translations",recent);addTranslationGroup("Major languages",major);
    if(fao.length)addTranslationGroup("Faroese — Føroyskt",fao);else{const group=document.createElement("optgroup");group.label="Faroese — Føroyskt";group.append(new Option("Føroyska Bíblian (Faroese Bible Society)","__FAROESE_OFFICIAL__"));language.append(group)}
    addTranslationGroup("All other languages",other);
-   language.value=englishGroup.querySelector("option")?.value||translations[0].id;
+   language.value=standardEnglish?.id||englishGroup.querySelector("option")?.value||translations[0].id;
    await loadBooks();
   }catch(e){area.innerHTML="<p>Could not load the Bible translation catalogue. Check your connection and reload the page.</p>"}
  }
