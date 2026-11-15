@@ -216,7 +216,8 @@ $("#deleteBuddyChats")?.addEventListener("click",()=>{
 });
 renderBuddySavedChats();
 
-$("#chatForm").addEventListener("submit",e=>{e.preventDefault();sendBuddy($("#chatInput").value)});$$(".prompt-chip").forEach(b=>b.onclick=()=>sendBuddy(b.textContent));
+$("#chatForm").addEventListener("submit",e=>{e.preventDefault();sendBuddy($("#chatInput").value)});$(".prompt-chip").forEach(b=>b.onclick=()=>sendBuddy(b.dataset.buddyPrompt||b.textContent));
+ $(".buddy-tool-button").forEach(b=>b.addEventListener("click",()=>sendBuddy(b.dataset.buddyPrompt||b.textContent)));
 const quiz=[["Who built the ark?",["Noah","Moses","David"],0],["Who defeated Goliath?",["Saul","David","Solomon"],1],["Where was Jesus born?",["Nazareth","Jerusalem","Bethlehem"],2],["Who was swallowed by a great fish?",["Jonah","Peter","Paul"],0],["What is the first book of the Bible?",["Exodus","Genesis","Psalms"],1]];let qi=0,answered=false,score=0;
 function drawQuiz(){const q=quiz[qi];$("#quizProgress").textContent="QUESTION "+(qi+1)+" OF "+quiz.length;$("#quizQuestion").textContent=q[0];$("#quizAnswers").innerHTML=q[1].map((a,i)=>'<button class="quiz-answer" data-answer="'+i+'">'+a+'</button>').join("");$("#quizFeedback").textContent="";$("#quizNext").disabled=true;$("#quizNext").textContent=qi===quiz.length-1?"Finish quiz":"Next question";answered=false}
 $("#quizAnswers").addEventListener("click",e=>{const b=e.target.closest("[data-answer]");if(!b||answered)return;answered=true;const chosen=+b.dataset.answer,correct=quiz[qi][2];if(chosen===correct){score++;$("#quizFeedback").textContent="Correct! Well done."}else $("#quizFeedback").textContent="Not quite. The answer is "+quiz[qi][1][correct]+".";$$(".quiz-answer").forEach((x,i)=>{if(i===correct)x.classList.add("correct");else if(i===chosen)x.classList.add("wrong")});$("#quizNext").disabled=false});
