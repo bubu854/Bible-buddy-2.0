@@ -232,6 +232,35 @@ select option{background:#19152f;color:#fff}
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
+
+/* SECRET REVEAL — swipe-charged portal */
+.swipe-zone{
+ height:250px;max-width:470px;margin:34px auto 18px;
+ border:1px solid #d9d0ff99;border-radius:48% 52% 50% 50% / 43% 46% 54% 57%;
+ background:
+  radial-gradient(ellipse at 50% 115%,#a5ffe9aa 0,transparent 43%),
+  radial-gradient(circle at 50% 38%,#b9aaff 0,#7862f1 39%,#3b287f 78%);
+ box-shadow:0 0 0 8px #9b8cff0c,0 0 38px #927aff80,0 0 100px #7757f944,inset 0 0 45px #ffffff2b;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;
+ transform:translateY(calc(var(--pull,0)*-1px)) scale(calc(1 + var(--pull,0)*.0007));
+ transition:box-shadow .2s,border-color .2s,filter .2s;
+}
+.swipe-zone:before{inset:13px;border:1px solid #ffffff90;border-radius:inherit;box-shadow:inset 0 0 24px #ffffff18}
+.swipe-zone:after{width:210px;height:210px;right:-65px;top:-105px;background:#ff80c966;filter:blur(18px)}
+.swipe-zone .swipe-orbit{position:absolute;width:150px;height:150px;border:1px solid #ffffff55;border-radius:50%;box-shadow:0 0 28px #a5ffe966;animation:orbitSpin 9s linear infinite;pointer-events:none}
+.swipe-zone .swipe-orbit:before,.swipe-zone .swipe-orbit:after{content:"✦";position:absolute;color:#bafff0;font-size:17px;text-shadow:0 0 14px #a5ffe9}
+.swipe-zone .swipe-orbit:before{top:5px;left:24px}.swipe-zone .swipe-orbit:after{bottom:8px;right:18px}
+@keyframes orbitSpin{to{transform:rotate(360deg)}}
+.swipe-zone .swipe-arrow{position:relative;z-index:1;font-size:58px;line-height:1;animation:portalArrow 1s ease-in-out infinite;filter:drop-shadow(0 0 18px #a5ffe9)}
+@keyframes portalArrow{0%,100%{transform:translateY(9px) scale(.96)}50%{transform:translateY(-9px) scale(1.08)}}
+.swipe-zone strong{position:relative;z-index:1;font-size:17px;letter-spacing:.17em;text-shadow:0 2px 16px #21134f}
+.swipe-zone small{position:relative;z-index:1;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#f0edff}
+.swipe-zone .swipe-track{position:absolute;bottom:27px;width:78px;height:4px;border-radius:9px;background:#ffffff4c;overflow:hidden}
+.swipe-zone .swipe-track i{display:block;height:100%;width:0;background:#a5ffe9;box-shadow:0 0 12px #a5ffe9}
+.swipe-zone.dragging{filter:brightness(1.2);border-color:#a5ffe9;box-shadow:0 0 0 8px #a5ffe91c,0 0 60px #a5ffe9a0,0 0 125px #ff6eaa66,inset 0 0 60px #ffffff45}
+.swipe-zone.done{border:1px solid #a5ffe9;filter:brightness(1.3);box-shadow:0 0 75px #a5ffe9}
+@media(max-width:520px){.swipe-zone{height:235px;margin:29px auto 14px}}
+
 </style>
 </head>
 <body><main class="wrap">
@@ -278,17 +307,28 @@ $("deal").onclick=()=>{
  let shuffled=[...players.keys()].sort(()=>Math.random()-.5);imposters=shuffled.slice(0,count);
  imposters.forEach(i=>players[i].imposter=true);index=0;showReveal();
 };
-function showReveal(){$("roleCard").classList.add("hidden");$("swipeReveal").classList.remove("hidden","done");$("swipeReveal").innerHTML='<div class="swipe-arrow">⬆️</div><strong>SLIDE UP TO REVEAL</strong><small>Keep your role secret!</small>';$("currentName").textContent=players[index].name;$("passTitle").textContent="Pass the phone to…";$("progress").style.width=(index/players.length*100)+"%";roleRevealed=false;show("reveal");}
+function showReveal(){$("roleCard").classList.add("hidden");$("swipeReveal").classList.remove("hidden","done");$("swipeReveal").innerHTML='<div class="swipe-orbit"></div><div class="swipe-arrow">⬆</div><strong>UNLOCK YOUR ROLE</strong><small>Swipe up through the portal</small><div class="swipe-track"><i></i></div>';$("currentName").textContent=players[index].name;$("passTitle").textContent="Pass the phone to…";$("progress").style.width=(index/players.length*100)+"%";roleRevealed=false;show("reveal");}
 function revealRole(){if(roleRevealed)return;roleRevealed=true;let p=players[index];$("secretWord").textContent=p.imposter?"🎭 IMPOSTER":"✦ "+word;$("roleText").textContent=p.imposter?"You don't know the secret word! Listen carefully, bluff and blend in.":"You know the secret word! Give a clever clue without saying it.";$("swipeReveal").classList.add("hidden");$("roleCard").classList.remove("hidden");}
 const swipe=$("swipeReveal");
-function beginSwipe(y){if(roleRevealed)return;swipeStartY=y;}
-function finishSwipe(y){if(swipeStartY!==null){const distance=swipeStartY-y;if(distance>22)revealRole();}swipeStartY=null;}
+let swipeOriginY=null,swipePull=0;
+function paintSwipe(distance){
+ swipePull=Math.max(0,Math.min(150,distance));
+ swipe.style.setProperty("--pull",swipePull);
+ swipe.classList.toggle("dragging",swipePull>3);
+ const fill=swipe.querySelector(".swipe-track i");if(fill)fill.style.width=(Math.min(100,swipePull/105*100))+"%";
+ const arrow=swipe.querySelector(".swipe-arrow");if(arrow)arrow.style.transform="translateY("+(-Math.min(38,swipePull*.28))+"px) scale("+ (1+swipePull*.0015)+")";
+}
+function beginSwipe(y){if(roleRevealed)return;swipeOriginY=y;swipeStartY=y;paintSwipe(0);}
+function moveSwipe(y){if(swipeOriginY===null||roleRevealed)return;paintSwipe(swipeOriginY-y);}
+function finishSwipe(y){if(swipeOriginY!==null){const distance=swipeOriginY-y;if(distance>58){swipe.classList.add("done");revealRole();}else{swipe.classList.remove("dragging");swipe.style.setProperty("--pull",0);const fill=swipe.querySelector(".swipe-track i");if(fill)fill.style.width="0%";}}swipeOriginY=null;swipeStartY=null;}
 swipe.addEventListener("touchstart",e=>{if(e.touches.length===1){beginSwipe(e.touches[0].clientY);e.preventDefault();}},{passive:false});
-swipe.addEventListener("touchmove",e=>{if(swipeStartY!==null)e.preventDefault();},{passive:false});
+swipe.addEventListener("touchmove",e=>{if(swipeOriginY!==null&&e.touches.length===1){moveSwipe(e.touches[0].clientY);e.preventDefault();}},{passive:false});
 swipe.addEventListener("touchend",e=>{if(e.changedTouches.length)finishSwipe(e.changedTouches[0].clientY);e.preventDefault();},{passive:false});
+swipe.addEventListener("touchcancel",()=>{swipeOriginY=null;swipeStartY=null;paintSwipe(0);},{passive:false});
 swipe.addEventListener("pointerdown",e=>{beginSwipe(e.clientY);});
+swipe.addEventListener("pointermove",e=>{if(swipeOriginY!==null)moveSwipe(e.clientY);});
 swipe.addEventListener("pointerup",e=>finishSwipe(e.clientY));
-swipe.addEventListener("pointercancel",()=>{swipeStartY=null;});
+swipe.addEventListener("pointercancel",()=>{swipeOriginY=null;swipeStartY=null;paintSwipe(0);});
 swipe.addEventListener("keydown",e=>{if(e.key==="ArrowUp"||e.key==="Enter"||e.key===" "){e.preventDefault();revealRole();}});
 $("nextPlayer").onclick=()=>{index++;if(index<players.length)showReveal();else startRound();};
 function startRound(){$("roundPlayers").innerHTML=players.map((p,i)=>'<div class="player"><b>'+escapeHtml(p.name)+'</b><small>Clue '+(i+1)+'</small></div>').join("");show("round");}
