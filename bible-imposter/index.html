@@ -32,6 +32,55 @@ button,input,select{font:inherit}
 .note{border-left:5px solid #4358ff;padding:11px 13px;background:#e9f5ef;border-radius:0 10px 10px 0;color:#3e4850;font-size:12px;line-height:1.5;margin-top:15px;font-weight:650}.footer{text-align:center;color:#6e777c;font-size:10px;font-weight:900;letter-spacing:.12em;margin:27px 0}
 .bar{height:9px;background:#e5e0d5;border:1px solid #20262d;border-radius:10px;overflow:hidden;margin:15px 0}.bar span{display:block;height:100%;background:#ff5b4d;width:0;transition:width .3s}.reveal{background:#b9f2d2;border:3px solid #20262d;text-align:center;padding:27px 18px;border-radius:17px;box-shadow:4px 4px 0 #4358ff}.room{font-size:30px;font-weight:950;letter-spacing:.18em;color:#4358ff;margin:14px}#confirmVote:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
 @media(max-width:430px){.wrap{padding:12px 12px 32px}.panel{padding:16px}.grid{gap:9px}.mode{padding:13px;min-height:110px}.row{gap:8px}.top{padding:10px}.hero{padding-top:20px}}
+
+/* Flat arcade art direction: bold typography, open space, graphic stripes */
+body{background:#f7f1e4;color:#171b25;background-image:linear-gradient(135deg,rgba(67,88,255,.055) 25%,transparent 25%,transparent 50%,rgba(67,88,255,.055) 50%,rgba(67,88,255,.055) 75%,transparent 75%);background-size:22px 22px}
+.wrap{max-width:850px;padding-top:16px}
+.top{background:transparent;color:#171b25;border:0;border-bottom:3px solid #171b25;border-radius:0;box-shadow:none;padding:8px 0 14px}
+.logo{border:0;border-radius:4px;background:#ff5b4d;box-shadow:4px 4px 0 #171b25;color:white}
+.tag{color:#4358ff}
+.pill{border:0;border-radius:2px;background:#ffca52;box-shadow:none;padding:7px 10px}
+.hero{padding:32px 5px 30px}
+.hero h1{font-size:clamp(65px,16vw,120px);letter-spacing:-.105em;line-height:.78;margin:20px 0 23px;transform:rotate(-2deg)}
+.hero h1 span{text-shadow:5px 5px 0 #ffca52!important}
+.eyebrow{font-size:12px;color:#4358ff}
+.sub{font-size:16px;max-width:540px}
+.panel{background:transparent;border:0;border-radius:0;padding:20px 4px;box-shadow:none;margin:10px 0;border-top:3px solid #171b25}
+.panel:hover{transform:none;box-shadow:none}
+.panel h2{font-size:clamp(24px,6vw,32px);text-transform:uppercase;letter-spacing:-.06em}
+.grid{gap:0;border-top:2px solid #171b25;border-bottom:2px solid #171b25}
+.mode{border:0;border-radius:0;box-shadow:none;background:#e4eddf;min-height:132px;padding:18px}
+.mode+ .mode{border-left:2px solid #171b25;background:#e4e7ff}
+.mode.selected{border:0;outline:4px solid #ff5b4d;outline-offset:-4px;background:#ffca52;box-shadow:none}
+.mode:active,.btn:active{transform:scale(.985);box-shadow:none}
+.btn{border:0;border-radius:3px;box-shadow:5px 5px 0 #171b25;padding:17px 18px;background:#ff5b4d;text-transform:uppercase;font-size:14px;letter-spacing:.07em}
+.btn.secondary{background:#b9f2d2;box-shadow:5px 5px 0 #171b25}
+.btn.ghost{background:#4358ff;box-shadow:5px 5px 0 #171b25}
+.input,select{border:0;border-bottom:3px solid #171b25;border-radius:0;background:#fffdf7;padding:15px}
+.field{color:#4358ff}
+.step{padding:24px 3px}
+.step .bigicon{width:auto;height:auto;background:transparent;border:0;box-shadow:none;border-radius:0;font-size:52px}
+.bar{height:7px;border:0;border-radius:0;background:#ddd7c9}
+.bar span{background:#4358ff}
+.swipe-zone{width:100%;max-width:440px;height:190px;margin:25px auto 10px;border:0;border-radius:0;background:#4358ff;color:white;box-shadow:8px 8px 0 #ff5b4d;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:grab;position:relative}
+.swipe-zone:before{content:"";position:absolute;inset:10px;border:2px dashed rgba(255,255,255,.5);pointer-events:none}
+.swipe-zone strong{font-size:19px;color:white;letter-spacing:.11em}
+.swipe-zone small{font-size:12px;color:#e4e7ff}
+.swipe-arrow{font-size:48px;color:#ffca52;animation:swipeHint .8s ease-in-out infinite}
+@keyframes swipeHint{0%,100%{transform:translateY(10px)}50%{transform:translateY(-10px)}}
+.secret{font-size:clamp(38px,10vw,66px);color:#4358ff;text-transform:uppercase;letter-spacing:-.07em;margin:25px 0}
+#roleCard{padding:20px 0}
+#roleText{font-size:16px;max-width:450px;margin:0 auto 20px}
+.players{gap:0;border-top:2px solid #171b25}
+.player{background:transparent;border:0;border-bottom:1px solid #c8c1b3;border-radius:0;box-shadow:none;padding:15px 4px}
+.vote{background:transparent;border:0;border-bottom:2px solid #171b25;border-radius:0;box-shadow:none;padding:17px 8px;margin:0;font-size:16px}
+.vote .num{background:#ffca52;color:#171b25;border-radius:0}
+.vote.chosen{background:#ffe1dc;border-color:#ff5b4d;box-shadow:none}
+.note{border-left:4px solid #ff5b4d;border-radius:0;background:#e7eaff;padding:13px;color:#252b32}
+.reveal{background:#ffca52;border:0;border-radius:0;box-shadow:8px 8px 0 #4358ff;padding:35px 18px}
+.footer{border-top:2px solid #171b25;padding-top:17px}
+@media(max-width:430px){.wrap{padding:10px 17px 30px}.panel{padding:17px 2px}.mode{padding:13px;min-height:126px}.top{padding-bottom:12px}.hero{padding-top:28px}.swipe-zone{height:205px}}
+
 </style>
 </head>
 <body><main class="wrap">
@@ -80,7 +129,16 @@ $("deal").onclick=()=>{
 };
 function showReveal(){$("roleCard").classList.add("hidden");$("swipeReveal").classList.remove("hidden","done");$("swipeReveal").innerHTML='<div class="swipe-arrow">⬆️</div><strong>SLIDE UP TO REVEAL</strong><small>Keep your role secret!</small>';$("currentName").textContent=players[index].name;$("passTitle").textContent="Pass the phone to…";$("progress").style.width=(index/players.length*100)+"%";roleRevealed=false;show("reveal");}
 function revealRole(){if(roleRevealed)return;roleRevealed=true;let p=players[index];$("secretWord").textContent=p.imposter?"🎭 IMPOSTER":"✦ "+word;$("roleText").textContent=p.imposter?"You don't know the secret word! Listen carefully, bluff and blend in.":"You know the secret word! Give a clever clue without saying it.";$("swipeReveal").classList.add("hidden");$("roleCard").classList.remove("hidden");}
-const swipe=$("swipeReveal");swipe.addEventListener("pointerdown",e=>{swipeStartY=e.clientY;});swipe.addEventListener("pointerup",e=>{if(swipeStartY!==null&&swipeStartY-e.clientY>35)revealRole();swipeStartY=null;});swipe.addEventListener("keydown",e=>{if(e.key==="ArrowUp"||e.key==="Enter"||e.key===" "){e.preventDefault();revealRole();}});
+const swipe=$("swipeReveal");
+function beginSwipe(y){if(roleRevealed)return;swipeStartY=y;}
+function finishSwipe(y){if(swipeStartY!==null){const distance=swipeStartY-y;if(distance>22)revealRole();}swipeStartY=null;}
+swipe.addEventListener("touchstart",e=>{if(e.touches.length===1){beginSwipe(e.touches[0].clientY);e.preventDefault();}},{passive:false});
+swipe.addEventListener("touchmove",e=>{if(swipeStartY!==null)e.preventDefault();},{passive:false});
+swipe.addEventListener("touchend",e=>{if(e.changedTouches.length)finishSwipe(e.changedTouches[0].clientY);e.preventDefault();},{passive:false});
+swipe.addEventListener("pointerdown",e=>{beginSwipe(e.clientY);});
+swipe.addEventListener("pointerup",e=>finishSwipe(e.clientY));
+swipe.addEventListener("pointercancel",()=>{swipeStartY=null;});
+swipe.addEventListener("keydown",e=>{if(e.key==="ArrowUp"||e.key==="Enter"||e.key===" "){e.preventDefault();revealRole();}});
 $("nextPlayer").onclick=()=>{index++;if(index<players.length)showReveal();else startRound();};
 function startRound(){$("roundPlayers").innerHTML=players.map((p,i)=>'<div class="player"><b>'+escapeHtml(p.name)+'</b><small>Clue '+(i+1)+'</small></div>').join("");show("round");}
 function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
