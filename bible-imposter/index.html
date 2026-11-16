@@ -274,6 +274,23 @@ select option{background:#19152f;color:#fff}
 .swipe-zone.dragging .swipe-arrow{animation:none}
 .swipe-zone.returning{transition:transform .28s cubic-bezier(.2,.85,.25,1),box-shadow .2s}
 
+
+/* Keep the portal and its instruction still; only the glowing swipe glyph travels. */
+.swipe-zone{transform:none!important;will-change:auto!important;transition:box-shadow .2s,border-color .2s,filter .2s!important}
+.swipe-zone.dragging{transform:none!important}
+.swipe-zone .swipe-arrow{
+ position:absolute;top:50%;left:50%;margin:0;
+ width:86px;height:86px;display:grid;place-items:center;
+ border-radius:28px;border:1px solid #d9fff5aa;
+ background:radial-gradient(circle at 35% 25%,#fff 0,#bafff0 12%,#8b79ff 48%,#39227e 100%);
+ box-shadow:0 0 0 8px #a5ffe91c,0 0 28px #a5ffe9,0 0 60px #9c70ff;
+ transform:translate(-50%,-50%);animation:portalGlyph 1.35s ease-in-out infinite;
+}
+.swipe-zone .swipe-arrow .arrow-core{font-size:53px;font-weight:900;line-height:1;color:#fff;text-shadow:0 0 14px #a5ffe9}
+.swipe-zone .swipe-arrow i{position:absolute;right:-10px;top:-10px;font-size:23px;color:#fff4a8;font-style:normal;text-shadow:0 0 14px #fff4a8}
+@keyframes portalGlyph{0%,100%{filter:brightness(1);box-shadow:0 0 0 8px #a5ffe91c,0 0 28px #a5ffe9,0 0 60px #9c70ff}50%{filter:brightness(1.35);box-shadow:0 0 0 14px #a5ffe910,0 0 42px #a5ffe9,0 0 85px #9c70ff}}
+.swipe-zone.dragging .swipe-arrow{animation:none}
+
 </style>
 </head>
 <body><main class="wrap">
@@ -320,7 +337,7 @@ $("deal").onclick=()=>{
  let shuffled=[...players.keys()].sort(()=>Math.random()-.5);imposters=shuffled.slice(0,count);
  imposters.forEach(i=>players[i].imposter=true);index=0;showReveal();
 };
-function showReveal(){$("roleCard").classList.add("hidden");$("swipeReveal").classList.remove("hidden","done");$("swipeReveal").innerHTML='<div class="swipe-orbit"></div><div class="swipe-arrow">⬆</div><strong>UNLOCK YOUR ROLE</strong><small>Swipe up through the portal</small><div class="swipe-track"><i></i></div>';$("currentName").textContent=players[index].name;$("passTitle").textContent="Pass the phone to…";$("progress").style.width=(index/players.length*100)+"%";roleRevealed=false;show("reveal");}
+function showReveal(){$("roleCard").classList.add("hidden");$("swipeReveal").classList.remove("hidden","done");$("swipeReveal").innerHTML='<div class="swipe-orbit"></div><div class="swipe-arrow"><span class="arrow-core">↑</span><i>✦</i></div><strong>UNLOCK YOUR ROLE</strong><small>Swipe up through the portal</small><div class="swipe-track"><i></i></div>';$("currentName").textContent=players[index].name;$("passTitle").textContent="Pass the phone to…";$("progress").style.width=(index/players.length*100)+"%";roleRevealed=false;show("reveal");}
 function revealRole(){if(roleRevealed)return;roleRevealed=true;let p=players[index];$("secretWord").textContent=p.imposter?"🎭 IMPOSTER":"✦ "+word;$("roleText").textContent=p.imposter?"You don't know the secret word! Listen carefully, bluff and blend in.":"You know the secret word! Give a clever clue without saying it.";$("swipeReveal").classList.add("hidden");$("roleCard").classList.remove("hidden");}
 const swipe=$("swipeReveal");
 let swipeOriginY=null,swipeBaseY=0,swipePull=0,activePointer=null;
