@@ -45,9 +45,23 @@ books.forEach(([n])=>$("book").add(new Option(n,n)));
 function setChapters(){let b=books.find(x=>x[0]===$("book").value);$("chapterNo").innerHTML="";for(let i=1;i<=b[1];i++)$("chapterNo").add(new Option("Chapter "+i,i))}
 $("book").onchange=setChapters;setChapters();
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".view").forEach(x=>x.classList.toggle("hidden",x.id!==b.dataset.tab));if(b.dataset.tab==="saved")renderSaved()});
-function makeChapter(){let ref=$("book").value+" "+$("chapterNo").value;currentQ=pick(chapterQs);$("chapterRef").textContent=ref;$("chapterQuestion").textContent=currentQ;$("chapterAnswer").value="";$("chapterResult").classList.remove("hidden")}
-$("chapterBtn").onclick=makeChapter;$("nextChapterQ").onclick=makeChapter;
-$("saveChapter").onclick=()=>save("Chapter", $("chapterRef").textContent,currentQ,"chapterAnswer");
+function makeChapter(){
+ const notes=$("readNotes").value.trim();
+ if(!notes){alert("First tell me a little about what you read. Then I can ask questions connected to it.");$("readNotes").focus();return}
+ chapterRefNow=$("book").value+" "+$("chapterNo").value;
+ chapterQueue=[
+ {q:"In your own words, what is the main thing that happens in "+chapterRefNow+"?"},
+ {q:"You said: “"+notes.slice(0,130)+"”. Which detail from the passage supports that?"},
+ {q:pick(chapterQs)},
+ {q:pick(readingFollowups)},
+ {q:"What is one thing from "+chapterRefNow+" you want to remember or put into practice?"}
+ ];
+ chapterIndex=0;$("chapterRef").textContent=chapterRefNow;$("chapterResult").classList.remove("hidden");showChapterQuestion();
+}
+function showChapterQuestion(){currentQ=chapterQueue[chapterIndex].q;$("chapterQuestion").textContent=currentQ;$("qStep").textContent=chapterIndex+1;$("chapterAnswer").value="";$("chapterDone").textContent=chapterIndex===4?"Final question — finish your reflection.":"Use details from the chapter in your answer.";$("nextChapterQ").textContent=chapterIndex===4?"Start again ↻":"Next question →"}
+$("chapterBtn").onclick=makeChapter;
+$("nextChapterQ").onclick=()=>{if(chapterIndex<4){const val=$("chapterAnswer").value.trim();if(val){answers.unshift({kind:"Chapter",ref:chapterRefNow,q:currentQ,answer:val,date:new Date().toLocaleDateString()});localStorage.setItem("bq_answers",JSON.stringify(answers));update()}chapterIndex++;showChapterQuestion()}else makeChapter()};
+$("saveChapter").onclick=()=>{const val=$("chapterAnswer").value.trim();if(!val){alert("Write a few thoughts before saving.");return}answers.unshift({kind:"Chapter",ref:chapterRefNow,q:currentQ,answer:val,date:new Date().toLocaleDateString()});localStorage.setItem("bq_answers",JSON.stringify(answers));update();$("chapterAnswer").value="";$("chapterDone").textContent="Saved! Move to the next question when you're ready."};
 function newQ(kind){currentQ=pick(kind==="random"?randomQs:deepQs);$(kind+"Question").textContent=currentQ;$(kind+"Answer").value=""}
 $("newRandom").onclick=()=>newQ("random");$("newDeep").onclick=()=>newQ("deep");
 $("saveRandom").onclick=()=>save("Random","Bible-wide", $("randomQuestion").textContent,"randomAnswer");
