@@ -220,7 +220,7 @@ $("#deleteBuddyChats")?.addEventListener("click",()=>{
 renderBuddySavedChats();
 
 let deepStudyActive=false,deepStudyAnswers=0,deepStudyPassage="";
- $("#chatForm").addEventListener("submit",e=>{e.preventDefault();const text=$("#chatInput").value;const mode=deepStudyActive?"deep-study-followup":"chat";if(deepStudyActive)deepStudyAnswers++;sendBuddy(text,mode)});
+ $("#chatForm").addEventListener("submit",e=>{e.preventDefault();const text=$("#chatInput").value;if(!text.trim())return;const mode=deepStudyActive?"deep-study-followup":"chat";if(deepStudyActive)deepStudyAnswers++;sendBuddy(text,mode)});
  $(".prompt-chip").forEach(b=>b.onclick=()=>{deepStudyActive=false;deepStudyAnswers=0;sendBuddy(b.dataset.buddyPrompt||b.textContent)});
  $(".buddy-tool-button").forEach(b=>b.addEventListener("click",()=>sendBuddy(b.dataset.buddyPrompt||b.textContent)));
 const quiz=[["Who built the ark?",["Noah","Moses","David"],0],["Who defeated Goliath?",["Saul","David","Solomon"],1],["Where was Jesus born?",["Nazareth","Jerusalem","Bethlehem"],2],["Who was swallowed by a great fish?",["Jonah","Peter","Paul"],0],["What is the first book of the Bible?",["Exodus","Genesis","Psalms"],1]];let qi=0,answered=false,score=0;
