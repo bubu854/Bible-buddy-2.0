@@ -221,7 +221,7 @@ renderBuddySavedChats();
 
 let deepStudyActive=false,deepStudyAnswers=0,deepStudyPassage="";
  $("#chatForm").addEventListener("submit",e=>{e.preventDefault();const text=$("#chatInput").value;if(!text.trim())return;const mode=deepStudyActive?"deep-study-followup":"chat";if(deepStudyActive)deepStudyAnswers++;sendBuddy(text,mode)});
- $(".prompt-chip").forEach(b=>b.onclick=()=>{deepStudyActive=false;deepStudyAnswers=0;sendBuddy(b.dataset.buddyPrompt||b.textContent)});
+ $(".prompt-chip:not([data-study-topic])").forEach(b=>b.onclick=()=>{deepStudyActive=false;deepStudyAnswers=0;sendBuddy(b.dataset.buddyPrompt||b.textContent)});
  $(".buddy-tool-button").forEach(b=>b.addEventListener("click",()=>sendBuddy(b.dataset.buddyPrompt||b.textContent)));
 const quiz=[["Who built the ark?",["Noah","Moses","David"],0],["Who defeated Goliath?",["Saul","David","Solomon"],1],["Where was Jesus born?",["Nazareth","Jerusalem","Bethlehem"],2],["Who was swallowed by a great fish?",["Jonah","Peter","Paul"],0],["What is the first book of the Bible?",["Exodus","Genesis","Psalms"],1]];let qi=0,answered=false,score=0;
 function drawQuiz(){const q=quiz[qi];$("#quizProgress").textContent="QUESTION "+(qi+1)+" OF "+quiz.length;$("#quizQuestion").textContent=q[0];$("#quizAnswers").innerHTML=q[1].map((a,i)=>'<button class="quiz-answer" data-answer="'+i+'">'+a+'</button>').join("");$("#quizFeedback").textContent="";$("#quizNext").disabled=true;$("#quizNext").textContent=qi===quiz.length-1?"Finish quiz":"Next question";answered=false}
@@ -571,30 +571,24 @@ page("home");
   const verse=e.target.closest(".bible-verse");if(!verse)return;
   const heading=$("#readingArea h2")?.textContent||"",ref=heading.split(" · ")[0]+" "+verse.dataset.verse;renderRelated(ref);
  });
- // Reliable delegated topic selection (works on iPhone taps and dynamically rendered topic buttons).
- document.addEventListener("click",function(event){
-  const topic=event.target.closest("[data-study-topic]");
-  if(!topic)return;
-  const field=document.getElementById("deepStudyPassage");
-  if(!field)return;
-  event.preventDefault();
-  field.value=topic.getAttribute("data-study-topic")||"";
-  field.dispatchEvent(new Event("input",{bubbles:true}));
-  field.dispatchEvent(new Event("change",{bubbles:true}));
-  field.focus({preventScroll:true});
-  field.scrollIntoView({behavior:"smooth",block:"center"});
-  toast(fo()?"Evnið er sett í tekstboksina.":"Topic added to the text box.");
- },true);
- // Recommended study topics fill the study field.
- $("#deepstudy-page")?.addEventListener("click",e=>{
-  const topic=e.target.closest("[data-study-topic]");if(!topic)return;
-  $("#deepStudyPassage").value=topic.dataset.studyTopic;
-  $("#deepStudyFocus").value="Full study";
-  $("#deepStudyPassage").focus();
-  toast(fo()?"Evnið er valt. Trýst á Granska við Buddy.":"Topic selected. Press Study with Buddy to begin.");
- });
- // Deep Bible study prompt
+  // Study topic buttons only fill the passage field; they must not start a normal chat.
+  document.addEventListener("click",function(event){
+   const topic=event.target.closest("[data-study-topic]");
+   if(!topic)return;
+   event.preventDefault();
+   event.stopPropagation();
+   const field=$("#deepStudyPassage");
+   if(!field)return;
+   field.value=topic.dataset.studyTopic||"";
+   $("#deepStudyFocus").value="Full study";
+   field.dispatchEvent(new Event("input",{bubbles:true}));
+   field.dispatchEvent(new Event("change",{bubbles:true}));
+   field.focus({preventScroll:true});
+   field.scrollIntoView({behavior:"smooth",block:"center"});
+   toast(fo()?"Evnið er sett í tekstboksina.":"Topic added. Press Study with Buddy to begin.");
+  },true);
  $("#startDeepStudy")?.addEventListener("click",()=>{
+  if(buddyBusy){toast(fo()?"Buddy svarar longu. Bíð eitt bil.":"Buddy is already replying. Please wait a moment.");return}
   const passage=$("#deepStudyPassage").value.trim();if(!passage){toast(say("Enter a passage or topic first.","Skriva fyrst eitt bíbliuvers ella evni."));$("#deepStudyPassage").focus();return}
   deepStudyActive=true;deepStudyAnswers=0;deepStudyPassage=passage;
   const focus=$("#deepStudyFocus").value;
