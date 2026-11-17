@@ -571,6 +571,20 @@ page("home");
   const verse=e.target.closest(".bible-verse");if(!verse)return;
   const heading=$("#readingArea h2")?.textContent||"",ref=heading.split(" · ")[0]+" "+verse.dataset.verse;renderRelated(ref);
  });
+ // Reliable delegated topic selection (works on iPhone taps and dynamically rendered topic buttons).
+ document.addEventListener("click",function(event){
+  const topic=event.target.closest("[data-study-topic]");
+  if(!topic)return;
+  const field=document.getElementById("deepStudyPassage");
+  if(!field)return;
+  event.preventDefault();
+  field.value=topic.getAttribute("data-study-topic")||"";
+  field.dispatchEvent(new Event("input",{bubbles:true}));
+  field.dispatchEvent(new Event("change",{bubbles:true}));
+  field.focus({preventScroll:true});
+  field.scrollIntoView({behavior:"smooth",block:"center"});
+  toast(fo()?"Evnið er sett í tekstboksina.":"Topic added to the text box.");
+ },true);
  // Recommended study topics fill the study field.
  $("#deepstudy-page")?.addEventListener("click",e=>{
   const topic=e.target.closest("[data-study-topic]");if(!topic)return;
